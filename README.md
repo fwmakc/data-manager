@@ -6,24 +6,12 @@ App for organizing and managing your data.
 
 ```bash
 npm install
-npm run dev
-```
-
-Opens at http://localhost:5173/
-
-## Build
-
-```bash
-npm run build
+npm run start
 ```
 
 Produces a single `dist/index.html` file that can be opened directly in a browser.
 
-## Preview build
-
-```bash
-npm run preview
-```
+Opens at http://localhost:4173/
 
 ## Structure
 

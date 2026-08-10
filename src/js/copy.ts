@@ -55,6 +55,7 @@ function findAction(actionKey: string): any | null {
 }
 
 function resolveTemplate(inst: Record<string, any>, tmpl: string): string {
+  if (!tmpl) return ''
   return tmpl.replace(/\{([^}]+)\}/g, (_: string, path: string) => {
     const parts = path.split('.')
     let val: any = inst
@@ -72,11 +73,11 @@ export function resolveAction(inst: Record<string, any>, actionKey: string): str
       const parts = m.field.split('.')
       let val: any = inst
       for (const p of parts) { val = val && val[p] }
-      if (val === m.value) return resolveTemplate(inst, m.data)
+      const match = Array.isArray(val) ? val.includes(m.value) : val === m.value
+      if (match) return resolveTemplate(inst, m.data)
     }
-    return ''
   }
-  return resolveTemplate(inst, act.data || '')
+  return act.data != null ? resolveTemplate(inst, act.data) : ''
 }
 
 export function runAction(site: string, actionKey: string): void {

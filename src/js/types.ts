@@ -14,7 +14,7 @@ export interface ActionMatch {
 export interface Action {
   name: string
   method: 'url' | 'buffer' | 'file'
-  data?: string
+  data?: string | null
   filename?: string
   match?: ActionMatch[]
 }

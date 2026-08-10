@@ -156,6 +156,7 @@ Instead of a static `data` field, you can use `match` to select the template bas
 {
   "name": "db",
   "method": "url",
+  "data": "https://localhost:3306/index.php",
   "match": [
     {
       "field": "db.type",
@@ -171,7 +172,9 @@ Instead of a static `data` field, you can use `match` to select the template bas
 }
 ```
 
-Each match entry checks `inst[field]` against `value`. If none match, the button is hidden.
+Each match entry checks `inst[field]` against `value`. If the field is an array, it checks whether the array includes `value`. In both cases, the **first matching entry** wins.
+
+**Fallback:** if no match entry matches, the action falls back to the top-level `data` field (if present). If `data` is `null`, missing, or an empty string, the button is hidden for that instance.
 
 ## Export
 

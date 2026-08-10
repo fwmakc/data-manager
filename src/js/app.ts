@@ -1,11 +1,12 @@
 import { DATA, SECTIONS } from './data'
 import '../css/style.css'
-import { selectedInstances, activeSections, activeTags, setSearchQuery, setDataSearchQuery, updateHash, saveState, loadState, parseHash } from './state'
+import { selectedInstances, activeSections, activeTags, setSearchQuery, setDataSearchQuery, dataSearchQuery, updateHash, saveState, loadState, parseHash } from './state'
 import { renderSidebar, renderMain } from './render'
 import { renderSectionsPanel, renderTagsPanel, renderExportPanel, resetSections, clearSections, resetTags, clearTags, toggleTag, toggleSubGroup, setRenderFns, getAllTags } from './panels'
 import { togglePanel, applyVisiblePanels, initDragSystem } from './layout'
 import { copyValue, runAction, copyInstance, copySingleSection, copySubGroup, copySubGroupCompare, copySection, copyAllSections, copySelectedInstances } from './copy'
 import { exportTable, saveMD, saveCSV, exportCSV, exportExcel, saveExcel, saveODS, printContent, exportSectionsSelected } from './export'
+import { getSectionFields, fmtCopy } from './helpers'
 
 function toggleInstance(name: string): void {
   if (selectedInstances.has(name)) selectedInstances.delete(name)
@@ -99,12 +100,34 @@ function init(): void {
     dataSearchEl.value = ''
     setDataSearchQuery('')
     renderMain()
+    updateSearchCount()
   }
 
   const dataSearchEl = document.getElementById('dataSearch') as HTMLInputElement
+  const dataSearchCountEl = document.getElementById('dataSearchCount')!
+
+  function updateSearchCount(): void {
+    if (!dataSearchQuery) { dataSearchCountEl.textContent = ''; return }
+    let count = 0
+    const q = dataSearchQuery.toLowerCase()
+    for (const name of selectedInstances) {
+      const inst = DATA.find(i => i.name === name)
+      if (!inst) continue
+      for (const sec of SECTIONS) {
+        if (!activeSections.has(sec.key)) continue
+        const fields = getSectionFields(sec.key, inst)
+        for (const f of fields) {
+          if (fmtCopy(f.value).toLowerCase().includes(q)) count++
+        }
+      }
+    }
+    dataSearchCountEl.textContent = count ? 'найдено: ' + count : 'нет'
+  }
+
   dataSearchEl.addEventListener('input', () => {
     setDataSearchQuery(dataSearchEl.value)
     renderMain()
+    updateSearchCount()
   })
 
   loadState()

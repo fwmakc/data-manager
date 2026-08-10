@@ -98,6 +98,11 @@ body {
 .header-search-clear:hover {
   color: var(--fg);
 }
+.header-search-count {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
 .header-toggle-btn {
   padding: 4px 12px;
   font-size: 12px;

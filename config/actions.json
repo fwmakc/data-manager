@@ -25,11 +25,12 @@
     {
       "name": "db",
       "method": "url",
+      "data": "https://localhost:3306/index.php",
       "match": [
         {
           "field": "db.type",
           "value": "mysql",
-          "data": "https://localhost:3306/phpmyadmin/index.php"
+          "data": "https://localhost:3310/phpmyadmin/index.php"
         },
         {
           "field": "db.type",

@@ -1,24 +1,22 @@
 # data-manager
 
-App for organizing and managing your data.
+App for organizing and managing instance data. Single-file HTML output — works from `file://` protocol.
 
 ## Getting started
 
 ```bash
 npm install
-npm run start
+npm start
 ```
 
-Produces a single `dist/index.html` file that can be opened directly in a browser.
-
-Opens at http://localhost:4173/
+Builds and opens at http://localhost:4173/
 
 ## Structure
 
 ```
 config/
-  actions.json    — actions (url/buffer buttons for instances)
-  labels.json     — field and section labels
+  actions.json    — action buttons (url / buffer / file)
+  labels.json     — section and field labels
 projects/
   *.json          — instance data (one file per instance)
 src/
@@ -27,17 +25,150 @@ src/
   js/             — TypeScript modules
 ```
 
-## Adding an instance
+## Instances
 
-Create a file `projects/<name>.json`:
+Each file in `projects/` is one instance. The filename is ignored — the `name` field is used as the identifier.
+
+`projects/dev.test.ru.json`:
 
 ```json
 {
-  "name": "example.com",
+  "name": "dev.test.ru",
   "status": ["active"],
-  "aliases": ["alias.com"],
-  ...
+  "aliases": ["alias.test.ru"],
+  "base": {
+    "admin": "admin:1234"
+  },
+  "ssh": {
+    "user": "admin",
+    "password": "1234"
+  },
+  "db": {
+    "name": "test",
+    "primary": {
+      "user": "root",
+      "password": "1234"
+    }
+  },
+  "apiv1": {
+    "port": "3000"
+  }
 }
 ```
 
-Fields and sections are defined in `config/labels.json`.
+### Required fields
+
+| Field     | Type       | Description                    |
+|-----------|------------|--------------------------------|
+| `name`    | `string`   | Unique instance identifier     |
+| `status`  | `string[]` | Tags shown in the sidebar      |
+| `aliases` | `string[]` | Alternative names (optional)  |
+
+All other fields are arbitrary — they are rendered based on `labels.json`.
+
+## Labels (`config/labels.json`)
+
+Defines section names, field labels, and sub-group labels. The nesting level is determined by the number of dots in the key:
+
+- **0 dots** — section header
+- **1 dot, has children** — sub-group label
+- **1 dot, no children** — field label
+- **2+ dots** — field label (nested)
+
+```json
+{
+  "ssh": "SSH",
+  "ssh.user": "user",
+  "ssh.password": "password",
+
+  "db": "DB",
+  "db.name": "database name",
+  "db.primary": "primary connection",
+  "db.primary.user": "user",
+  "db.primary.password": "password",
+
+  "apiv1": "APIv1",
+  "apiv1.port": "port in env"
+}
+```
+
+How this maps to data:
+
+```
+ssh              → section header "SSH"
+  ssh.user       → field "user"         → inst.ssh.user
+  ssh.password   → field "password"     → inst.ssh.password
+
+db               → section header "DB"
+  db.name        → field "database name"    → inst.db.name
+  db.primary     → sub-group "primary connection"
+    db.primary.user     → field "user"      → inst.db.primary.user
+    db.primary.password → field "password"  → inst.db.primary.password
+
+apiv1            → section header "APIv1"
+  apiv1.port     → field "port in env"     → inst.apiv1.port
+```
+
+Any top-level key in an instance that is not `name`, `status`, or `aliases` is treated as a section.
+
+## Actions (`config/actions.json`)
+
+Array of rows. Each row is an array of action buttons displayed together.
+
+```json
+[
+  [
+    { "name": "site", "method": "url", "data": "https://{name}" }
+  ],
+  [
+    { "name": "ssh", "method": "buffer", "data": "ssh {ssh.user}@192.168.0.0" }
+  ],
+  [
+    { "name": "env", "method": "file", "filename": "{ssh.user}.env", "data": "SSH={ssh.user}\n\nHOST=192.168.0.0\n" }
+  ]
+]
+```
+
+### Methods
+
+| Method    | Behavior                                          |
+|-----------|---------------------------------------------------|
+| `url`     | Renders as a link that opens in a new tab         |
+| `buffer`  | Copies resolved text to clipboard                 |
+| `file`    | Downloads a file with the resolved content        |
+
+### Templates
+
+Both `data` and `filename` (for `file` method) support `{path.to.field}` placeholders. These are resolved from the instance data:
+
+```
+"data": "ssh {ssh.user}@192.168.0.0"
+inst.ssh.user = "admin"  →  "ssh admin@192.168.0.0"
+```
+
+If a field is missing or empty, the placeholder is kept as-is.
+
+## Export
+
+The app supports several export formats from the sidebar:
+
+- **Copy** — copies selected data as markdown to clipboard
+- **Copy Excel** — copies as tab-separated values (paste into Excel)
+- **Save MD** — downloads a `.md` file
+- **Save CSV** — downloads a `.csv` file (`;` delimiter)
+- **Save Excel** — downloads an `.xlsx` file
+- **Save ODS** — downloads an `.ods` file
+- **Print** — opens print dialog
+
+## Search
+
+The **Filter** field in the sidebar filters instances by name. The **Search by data** field in the header filters visible fields and sections by their values. Matches are highlighted. Neither search affects copy or export — they only change what is displayed.
+
+## Direct linking
+
+You can link to a specific instance or comparison:
+
+```
+#dev.test.ru                    — select one instance
+#compare:dev.test.ru,test.ru    — compare two instances
+```

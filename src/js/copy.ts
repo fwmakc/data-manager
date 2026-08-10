@@ -70,7 +70,26 @@ export function resolveAction(inst: Record<string, any>, actionKey: string): str
 export function runAction(site: string, actionKey: string): void {
   const inst = DATA.find(i => i.name === site)
   if (!inst) return
-  clipboardCopy(resolveAction(inst, actionKey))
+  const act = findAction(actionKey)
+  if (!act) return
+  if (act.method === 'file' && act.filename) {
+    const content = resolveAction(inst, actionKey)
+    const filename = act.filename.replace(/\{([^}]+)\}/g, (_: string, path: string) => {
+      const parts = path.split('.')
+      let val: any = inst
+      for (const p of parts) { val = val && val[p] }
+      if (val !== null && val !== undefined && val !== '') return val
+      return path
+    })
+    const blob = new Blob([content], { type: 'text/plain' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(a.href)
+  } else {
+    clipboardCopy(resolveAction(inst, actionKey))
+  }
 }
 
 export function copyInstanceMd(inst: Record<string, any>): string {

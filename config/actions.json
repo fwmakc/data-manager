@@ -12,5 +12,13 @@
       "method": "buffer",
       "data": "ssh {ssh.user}@192.168.0.0"
     }
+  ],
+  [
+    {
+      "name": "env",
+      "method": "file",
+      "filename": "{ssh.user}.env",
+      "data": "SSH={ssh.user}\n\nHOST=192.168.0.0\n"
+    }
   ]
 ]

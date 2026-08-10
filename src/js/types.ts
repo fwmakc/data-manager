@@ -7,8 +7,9 @@ export interface Instance {
 
 export interface Action {
   name: string
-  method: 'url' | 'buffer'
+  method: 'url' | 'buffer' | 'file'
   data: string
+  filename?: string
 }
 
 export type Actions = Action[][]

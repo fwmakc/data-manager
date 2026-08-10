@@ -1,6 +1,6 @@
 import { DATA, SECTIONS } from './data'
 import '../css/style.css'
-import { selectedInstances, activeSections, activeTags, setSearchQuery, updateHash, saveState, loadState, parseHash } from './state'
+import { selectedInstances, activeSections, activeTags, setSearchQuery, setDataSearchQuery, updateHash, saveState, loadState, parseHash } from './state'
 import { renderSidebar, renderMain } from './render'
 import { renderSectionsPanel, renderTagsPanel, renderExportPanel, resetSections, clearSections, resetTags, clearTags, toggleTag, toggleSubGroup, setRenderFns, getAllTags } from './panels'
 import { togglePanel, applyVisiblePanels, initDragSystem } from './layout'
@@ -95,6 +95,17 @@ function init(): void {
   g.saveODS = saveODS
   g.printContent = printContent
   g.exportSectionsSelected = exportSectionsSelected
+  g.clearDataSearch = () => {
+    dataSearchEl.value = ''
+    setDataSearchQuery('')
+    renderMain()
+  }
+
+  const dataSearchEl = document.getElementById('dataSearch') as HTMLInputElement
+  dataSearchEl.addEventListener('input', () => {
+    setDataSearchQuery(dataSearchEl.value)
+    renderMain()
+  })
 
   loadState()
   parseHash()

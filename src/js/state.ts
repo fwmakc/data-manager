@@ -6,8 +6,12 @@ export const activeSections = new Set<string>()
 export const activeTags = new Set<string>()
 export const hiddenSubGroups = new Set<string>()
 export let searchQuery = ''
+export let dataSearchQuery = ''
 export function setSearchQuery(val: string): void {
   searchQuery = val
+}
+export function setDataSearchQuery(val: string): void {
+  dataSearchQuery = val
 }
 export const visiblePanels = { sections: true, tags: true, list: true, export: true }
 export let panelLayout: PanelLayout = {

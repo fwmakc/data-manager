@@ -1,4 +1,11 @@
 
+mark {
+  background: rgba(255, 213, 79, 0.35);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
 :root {
   --bg: #1a1a2e;
   --bg2: #16213e;
@@ -56,6 +63,40 @@ body {
   display: flex;
   gap: 6px;
   margin-left: auto;
+}
+.header-search {
+  display: flex;
+  align-items: center;
+  margin-left: 16px;
+  gap: 4px;
+}
+#dataSearch {
+  padding: 4px 8px;
+  font-size: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--fg);
+  outline: none;
+  width: 180px;
+}
+#dataSearch:focus {
+  border-color: var(--accent);
+}
+#dataSearch::placeholder {
+  color: var(--muted);
+}
+.header-search-clear {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+}
+.header-search-clear:hover {
+  color: var(--fg);
 }
 .header-toggle-btn {
   padding: 4px 12px;

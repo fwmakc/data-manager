@@ -10,6 +10,10 @@
 
 <div class="header">
   <h1>Менеджер данных</h1>
+  <div class="header-search">
+    <input type="text" id="dataSearch" placeholder="Поиск по данным">
+    <button class="header-search-clear" id="dataSearchClear" onclick="clearDataSearch()">&times;</button>
+  </div>
   <div class="header-toggles">
     <button class="header-toggle-btn active" id="toggleList" onclick="togglePanel('list')">Список</button>
     <button class="header-toggle-btn active" id="toggleTags" onclick="togglePanel('tags')">Теги</button>

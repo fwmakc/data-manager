@@ -1,5 +1,5 @@
 import { DATA, ACTIONS, SECTIONS, FIELD_LABELS, SUB_LABELS } from './data'
-import { selectedInstances, activeSections, activeTags, hiddenSubGroups, searchQuery, saveState, updateHash } from './state'
+import { selectedInstances, activeSections, activeTags, hiddenSubGroups, searchQuery, dataSearchQuery, saveState, updateHash } from './state'
 import { getSectionFields, fmt, fmtCopy, escHtml, escAttr } from './helpers'
 import { copyValue, resolveAction, runAction, copyInstance, copySingleSection, copySubGroup, copySubGroupCompare, copySection } from './copy'
 
@@ -8,6 +8,20 @@ export function isVisible(inst: Record<string, any>): boolean {
   const matchName = !q || inst.name.toLowerCase().includes(q)
   const matchTag = activeTags.size === 0 || (inst.status || []).some((t: string) => activeTags.has(t))
   return matchName && matchTag
+}
+
+export function fieldMatchesSearch(value: any): boolean {
+  const q = dataSearchQuery.toLowerCase()
+  if (!q) return true
+  const str = fmtCopy(value)
+  return str.toLowerCase().includes(q)
+}
+
+export function highlight(text: string): string {
+  const q = dataSearchQuery
+  if (!q) return text
+  const esc = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return text.replace(new RegExp('(' + esc + ')', 'gi'), '<mark>$1</mark>')
 }
 
 export function renderSidebar(): void {
@@ -81,7 +95,8 @@ function renderSingle(inst: Record<string, any>, container: HTMLElement): void {
     const fields = getSectionFields(sec.key, inst).filter(f => {
       const v = Array.isArray(f.value) ? f.value : [f.value]
       return v.some((x: any) => x !== null && x !== undefined && x !== '')
-    })
+    }).filter(f => fieldMatchesSearch(f.value))
+    if (fields.length === 0 && dataSearchQuery) continue
     if (fields.length === 0) continue
 
     html += `<div class="section-block" data-section="${sec.key}">`
@@ -102,13 +117,13 @@ function renderSingle(inst: Record<string, any>, container: HTMLElement): void {
         }
         html += '<div class="field-row">'
         html += `<span class="field-key">${escHtml(label)}</span>`
-        html += `<span class="field-value" onclick="copyValue(this, '${escAttr(fmtCopy(f.value))}')">${fmt(f.value)}</span>`
+        html += `<span class="field-value" onclick="copyValue(this, '${escAttr(fmtCopy(f.value))}')">${highlight(fmt(f.value))}</span>`
         html += '</div>'
       } else {
         currentGroup = ''
         html += '<div class="field-row">'
         html += `<span class="field-key">${escHtml(label)}</span>`
-        html += `<span class="field-value" onclick="copyValue(this, '${escAttr(fmtCopy(f.value))}')">${fmt(f.value)}</span>`
+        html += `<span class="field-value" onclick="copyValue(this, '${escAttr(fmtCopy(f.value))}')">${highlight(fmt(f.value))}</span>`
         html += '</div>'
       }
     }
@@ -150,12 +165,20 @@ function renderCompare(insts: Record<string, any>[], container: HTMLElement): vo
       getSectionFields(sec.key, inst).forEach(f => allFields.add(f.path))
     }
     const sorted = [...allFields].sort()
-    if (sorted.length === 0) continue
+    const filtered = dataSearchQuery ? sorted.filter(fp => {
+      for (const inst of insts) {
+        const fields = getSectionFields(sec.key, inst)
+        const field = fields.find(f => f.path === fp)
+        if (field && fieldMatchesSearch(field.value)) return true
+      }
+      return false
+    }) : sorted
+    if (filtered.length === 0) continue
 
     html += `<tr class="section-row"><td class="copyable-header" colspan="${insts.length + 1}" onclick="copySection('${sec.key}')">${escHtml(sec.label)}</td></tr>`
 
     let currentGroup = ''
-    for (const fp of sorted) {
+    for (const fp of filtered) {
       const parts = fp.split('.')
       if (parts.length > 1) {
         const group = parts[0]
@@ -175,7 +198,7 @@ function renderCompare(insts: Record<string, any>[], container: HTMLElement): vo
         const fields = getSectionFields(sec.key, inst)
         const field = fields.find(f => f.path === fp)
         const val = field ? field.value : null
-        html += `<td><span class="cell-value" onclick="copyValue(this, '${escAttr(fmtCopy(val))}')">${fmt(val)}</span></td>`
+        html += `<td><span class="cell-value" onclick="copyValue(this, '${escAttr(fmtCopy(val))}')">${highlight(fmt(val))}</span></td>`
       }
       html += '</tr>'
     }

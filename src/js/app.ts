@@ -4,7 +4,7 @@ import { selectedInstances, activeSections, activeTags, setSearchQuery, setDataS
 import { renderSidebar, renderMain } from './render'
 import { renderSectionsPanel, renderTagsPanel, renderExportPanel, resetSections, clearSections, resetTags, clearTags, toggleTag, toggleSubGroup, setRenderFns, getAllTags } from './panels'
 import { togglePanel, applyVisiblePanels, initDragSystem } from './layout'
-import { copyValue, runAction, copyInstance, copySingleSection, copySubGroup, copySubGroupCompare, copySection, copyAllSections, copySelectedInstances } from './copy'
+import { copyValue, runAction, copyInstance, copySingleSection, copySubGroup, copySubGroupCompare, copySection, copyFieldCompare, copyAllSections, copySelectedInstances } from './copy'
 import { exportTable, saveMD, saveCSV, exportCSV, exportExcel, saveExcel, saveODS, printContent, exportSectionsSelected } from './export'
 import { getSectionFields, fmtCopy } from './helpers'
 
@@ -85,6 +85,7 @@ function init(): void {
   g.copySubGroup = copySubGroup
   g.copySubGroupCompare = copySubGroupCompare
   g.copySection = copySection
+  g.copyFieldCompare = copyFieldCompare
   g.copyAllSections = copyAllSections
   g.copySelectedInstances = copySelectedInstances
   g.exportTable = exportTable

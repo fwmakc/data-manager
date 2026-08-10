@@ -12,6 +12,16 @@ import labelsJson from '../../config/labels.json'
 
 export const ACTIONS: Actions = actionsJson as Actions
 export const LABELS: Labels = labelsJson as Labels
+export const LABEL_ORDER: string[] = Object.keys(LABELS)
+
+export function sortFieldsByLabels(fields: string[]): string[] {
+  const order = LABEL_ORDER
+  return [...fields].sort((a, b) => {
+    const ia = order.indexOf(a)
+    const ib = order.indexOf(b)
+    return (ia === -1 ? Infinity : ia) - (ib === -1 ? Infinity : ib)
+  })
+}
 
 export const SECTIONS: Section[] = (() => {
   const sections: Section[] = []

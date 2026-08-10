@@ -84,7 +84,11 @@ export function buildGroupMd(
   let currentRows: string[] = []
 
   function flushGroup(): void {
-    if (currentRows.length === 0 && !currentGroupLabel) return
+    if (currentRows.length === 0) {
+      currentGroup = ''
+      currentGroupLabel = ''
+      return
+    }
     groups.push({ header: currentGroup ? `### ${currentGroupLabel}` : undefined, rows: [...currentRows] })
     currentGroup = ''
     currentGroupLabel = ''

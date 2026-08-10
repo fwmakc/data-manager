@@ -1,4 +1,4 @@
-import { DATA, SECTIONS, FIELD_LABELS, SUB_LABELS } from './data'
+import { DATA, SECTIONS, FIELD_LABELS, SUB_LABELS, sortFieldsByLabels } from './data'
 import { selectedInstances, activeSections, showToast } from './state'
 import { getSectionFields, fmtCellValue, downloadFile, fieldToMd, buildGroupMd } from './helpers'
 import { clipboardCopy } from './copy'
@@ -15,7 +15,7 @@ function getFlatFields(): { insts: typeof DATA; structure: { sectionKey: string;
     for (const inst of insts) {
       getSectionFields(sec.key, inst).forEach(f => secFields.add(f.path))
     }
-    const sorted = [...secFields].sort()
+    const sorted = sortFieldsByLabels([...secFields])
     if (sorted.length === 0) continue
     structure.push({ sectionKey: sec.key, label: sec.label, fields: sorted })
   }
@@ -226,7 +226,7 @@ export function exportSectionsSelected(): void {
     for (const inst of insts) {
       getSectionFields(sec.key, inst).forEach(f => allFields.add(f.path))
     }
-    const sorted = [...allFields].sort()
+    const sorted = sortFieldsByLabels([...allFields])
     if (sorted.length === 0) continue
     blocks.push('# ' + sec.label)
     for (const inst of insts) {

@@ -1,4 +1,4 @@
-import { DATA, ACTIONS, SECTIONS, FIELD_LABELS, SUB_LABELS } from './data'
+import { DATA, ACTIONS, SECTIONS, FIELD_LABELS, SUB_LABELS, sortFieldsByLabels } from './data'
 import { selectedInstances, activeSections, activeTags, hiddenSubGroups, searchQuery, dataSearchQuery, saveState, updateHash } from './state'
 import { getSectionFields, fmt, fmtCopy, escHtml, escAttr } from './helpers'
 import { copyValue, resolveAction, runAction, copyInstance, copySingleSection, copySubGroup, copySubGroupCompare, copySection } from './copy'
@@ -166,7 +166,7 @@ function renderCompare(insts: Record<string, any>[], container: HTMLElement): vo
     for (const inst of insts) {
       getSectionFields(sec.key, inst).forEach(f => allFields.add(f.path))
     }
-    const sorted = [...allFields].sort()
+    const sorted = sortFieldsByLabels([...allFields])
     const filtered = dataSearchQuery ? sorted.filter(fp => {
       for (const inst of insts) {
         const fields = getSectionFields(sec.key, inst)
@@ -195,7 +195,7 @@ function renderCompare(insts: Record<string, any>[], container: HTMLElement): vo
         currentGroup = ''
       }
       const label = FIELD_LABELS[sec.key + '.' + fp] || fp.split('.').pop()
-      html += `<tr><td class="field-path">${escHtml(label)}</td>`
+      html += `<tr><td class="field-path copyable-header" onclick="copyFieldCompare('${sec.key}', '${escAttr(fp)}')">${escHtml(label)}</td>`
       for (const inst of insts) {
         const fields = getSectionFields(sec.key, inst)
         const field = fields.find(f => f.path === fp)

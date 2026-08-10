@@ -111,6 +111,8 @@ apiv1            → section header "APIv1"
 
 Any top-level key in an instance that is not `name`, `status`, or `aliases` is treated as a section.
 
+Fields within each section are displayed in the same order as their keys appear in `labels.json`. Fields not listed in `labels.json` are placed last, sorted alphabetically.
+
 ## Actions (`config/actions.json`)
 
 Array of rows. Each row is an array of action buttons displayed together.

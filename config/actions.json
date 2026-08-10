@@ -20,5 +20,23 @@
       "filename": "{ssh.user}.env",
       "data": "SSH={ssh.user}\n\nHOST=192.168.0.0\n"
     }
+  ],
+  [
+    {
+      "name": "db",
+      "method": "url",
+      "match": [
+        {
+          "field": "db.type",
+          "value": "mysql",
+          "data": "https://localhost:3306/phpmyadmin/index.php"
+        },
+        {
+          "field": "db.type",
+          "value": "pg",
+          "data": "https://localhost:8000/?pgsql=192.168.0.0&username={db.primary.user}&db={db.name}"
+        }
+      ]
+    }
   ]
 ]

@@ -73,9 +73,10 @@ function renderActionButtons(inst: Record<string, any>, html: string): string {
       if (ri > 0) html += '<div class="action-row-gap"></div>'
       const row = ACTIONS[ri]
       for (const act of row) {
+        const resolved = resolveAction(inst, act.name)
+        if (act.match && !resolved) continue
         if (act.method === 'url') {
-          const url = resolveAction(inst, act.name)
-          html += `<a class="action-btn" href="${escAttr(url)}" target="_blank" rel="noopener">${escHtml(act.name)}</a>`
+          html += `<a class="action-btn" href="${escAttr(resolved)}" target="_blank" rel="noopener">${escHtml(act.name)}</a>`
         } else {
           html += `<button class="action-btn" onclick="runAction('${escAttr(inst.name)}', '${escAttr(act.name)}')">${escHtml(act.name)}</button>`
         }
@@ -145,9 +146,10 @@ function renderCompare(insts: Record<string, any>[], container: HTMLElement): vo
       for (const inst of insts) {
         html += '<td>'
         for (const act of row) {
+          const resolved = resolveAction(inst, act.name)
+          if (act.match && !resolved) continue
           if (act.method === 'url') {
-            const url = resolveAction(inst, act.name)
-            html += `<a class="action-btn" href="${escAttr(url)}" target="_blank" rel="noopener">${escHtml(act.name)}</a>`
+            html += `<a class="action-btn" href="${escAttr(resolved)}" target="_blank" rel="noopener">${escHtml(act.name)}</a>`
           } else {
             html += `<button class="action-btn" onclick="runAction('${escAttr(inst.name)}', '${escAttr(act.name)}')">${escHtml(act.name)}</button>`
           }

@@ -54,10 +54,7 @@ function findAction(actionKey: string): any | null {
   return null
 }
 
-export function resolveAction(inst: Record<string, any>, actionKey: string): string {
-  const act = findAction(actionKey)
-  if (!act) return ''
-  const tmpl = typeof act === 'string' ? act : act.data
+function resolveTemplate(inst: Record<string, any>, tmpl: string): string {
   return tmpl.replace(/\{([^}]+)\}/g, (_: string, path: string) => {
     const parts = path.split('.')
     let val: any = inst
@@ -65,6 +62,21 @@ export function resolveAction(inst: Record<string, any>, actionKey: string): str
     if (val !== null && val !== undefined && val !== '') return val
     return path
   })
+}
+
+export function resolveAction(inst: Record<string, any>, actionKey: string): string {
+  const act = findAction(actionKey)
+  if (!act) return ''
+  if (act.match && act.match.length > 0) {
+    for (const m of act.match) {
+      const parts = m.field.split('.')
+      let val: any = inst
+      for (const p of parts) { val = val && val[p] }
+      if (val === m.value) return resolveTemplate(inst, m.data)
+    }
+    return ''
+  }
+  return resolveTemplate(inst, act.data || '')
 }
 
 export function runAction(site: string, actionKey: string): void {

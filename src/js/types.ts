@@ -5,11 +5,18 @@ export interface Instance {
   [key: string]: any
 }
 
+export interface ActionMatch {
+  field: string
+  value: string
+  data: string
+}
+
 export interface Action {
   name: string
   method: 'url' | 'buffer' | 'file'
-  data: string
+  data?: string
   filename?: string
+  match?: ActionMatch[]
 }
 
 export type Actions = Action[][]

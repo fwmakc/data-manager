@@ -148,6 +148,31 @@ inst.ssh.user = "admin"  →  "ssh admin@192.168.0.0"
 
 If a field is missing or empty, the placeholder is kept as-is.
 
+### Pattern matching
+
+Instead of a static `data` field, you can use `match` to select the template based on an instance field value. The first matching entry wins:
+
+```json
+{
+  "name": "db",
+  "method": "url",
+  "match": [
+    {
+      "field": "db.type",
+      "value": "mysql",
+      "data": "https://localhost:3306/phpmyadmin/index.php"
+    },
+    {
+      "field": "db.type",
+      "value": "pg",
+      "data": "https://localhost:8000/?pgsql=192.168.0.0&username={db.primary.user}&db={db.name}"
+    }
+  ]
+}
+```
+
+Each match entry checks `inst[field]` against `value`. If none match, the button is hidden.
+
 ## Export
 
 The app supports several export formats from the sidebar:

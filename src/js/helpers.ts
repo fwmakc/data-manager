@@ -66,9 +66,9 @@ export function fieldToMd(label: string, value: any): string {
   if (value === null || value === undefined || value === '') return ''
   if (Array.isArray(value)) {
     if (value.length === 0) return ''
-    return `${label}:\n${value.map(v => `- \`${v}\``).join('\n')}\n`
+    return `${label}:\n${value.map(v => `- \`${v}\``).join('\n')}`
   }
-  return `${label}: \`${value}\`\n`
+  return `${label}: \`${value}\``
 }
 
 export function buildGroupMd(
@@ -78,10 +78,18 @@ export function buildGroupMd(
   getLabel?: (secKey: string, fp: string) => string,
   getValue?: (inst: Record<string, any>, fp: string, secKey: string) => any
 ): string {
-  let md = ''
+  const groups: { header?: string; rows: string[] }[] = []
   let currentGroup = ''
-  let groupFields = ''
   let currentGroupLabel = ''
+  let currentRows: string[] = []
+
+  function flushGroup(): void {
+    if (currentRows.length === 0 && !currentGroupLabel) return
+    groups.push({ header: currentGroup ? `### ${currentGroupLabel}` : undefined, rows: [...currentRows] })
+    currentGroup = ''
+    currentGroupLabel = ''
+    currentRows = []
+  }
 
   for (let i = 0; i < fieldsOrPaths.length; i++) {
     const item = fieldsOrPaths[i]
@@ -90,31 +98,29 @@ export function buildGroupMd(
     if (parts.length > 1) {
       const group = parts[0]
       if (group !== currentGroup) {
-        if (groupFields) {
-          if (currentGroup !== '') md += `### ${currentGroupLabel}\n\n${groupFields}\n`
-          else md += groupFields
-        }
+        flushGroup()
         currentGroup = group
         currentGroupLabel = SUB_LABELS[`${secKey}.${group}`] || group
-        groupFields = ''
       }
     } else {
-      if (groupFields) {
-        if (currentGroup !== '') md += `### ${currentGroupLabel}\n\n${groupFields}\n`
-        else md += groupFields
-      }
+      if (currentGroup !== '') flushGroup()
       currentGroup = ''
-      groupFields = ''
     }
     const label = getLabel ? getLabel(secKey, fp) : (FIELD_LABELS[`${secKey}.${fp}`] || fp.split('.').pop() || '')
     const value = getValue ? getValue(inst, fp, secKey) : null
-    groupFields += fieldToMd(label, value)
+    const line = fieldToMd(label, value)
+    if (line) currentRows.push(line)
   }
-  if (groupFields) {
-    if (currentGroup !== '') md += `### ${currentGroupLabel}\n\n${groupFields}\n`
-    else md += groupFields
+  flushGroup()
+
+  const parts: string[] = []
+  for (const g of groups) {
+    let s = ''
+    if (g.header) s += g.header + '\n\n'
+    s += g.rows.join('\n')
+    parts.push(s)
   }
-  return md
+  return parts.join('\n\n')
 }
 
 function d(): string {

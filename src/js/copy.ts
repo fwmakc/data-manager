@@ -74,20 +74,23 @@ export function runAction(site: string, actionKey: string): void {
 }
 
 export function copyInstanceMd(inst: Record<string, any>): string {
-  let md = '# ' + inst.name + '\n\n'
+  const blocks: string[] = ['# ' + inst.name]
   for (const sec of SECTIONS) {
     if (!activeSections.has(sec.key)) continue
-    const fields = getSectionFields(sec.key, inst)
+    const fields = getSectionFields(sec.key, inst).filter(f => {
+      const v = Array.isArray(f.value) ? f.value : [f.value]
+      return v.some(x => x !== null && x !== undefined && x !== '')
+    })
     if (fields.length === 0) continue
-    const secMd = buildGroupMd(sec.key, fields, inst, (secKey, fp) => {
+    blocks.push('## ' + sec.label)
+    const md = buildGroupMd(sec.key, fields, inst, (secKey, fp) => {
       return FIELD_LABELS[secKey + '.' + fp] || fp.split('.').pop() || ''
     }, (inst, fp, secKey) => {
       return getValueByPath(inst, secKey + '.' + fp)
     })
-    if (!secMd) continue
-    md += '## ' + sec.label + '\n\n' + secMd + '\n'
+    if (md) blocks.push(md)
   }
-  return md
+  return blocks.join('\n\n')
 }
 
 export function copyInstance(name: string): void {
@@ -101,16 +104,19 @@ export function copySingleSection(sectionKey: string, name: string): void {
   const inst = DATA.find(i => i.name === name)
   const sec = SECTIONS.find(s => s.key === sectionKey)
   if (!inst || !sec) return
-  const fields = getSectionFields(sectionKey, inst)
+  const fields = getSectionFields(sectionKey, inst).filter(f => {
+    const v = Array.isArray(f.value) ? f.value : [f.value]
+    return v.some(x => x !== null && x !== undefined && x !== '')
+  })
   if (fields.length === 0) return
-  let md = '# ' + inst.name + '\n\n## ' + sec.label + '\n\n'
-  md += buildGroupMd(sectionKey, fields, inst, (secKey, fp) => {
+  const blocks: string[] = ['# ' + inst.name, '## ' + sec.label]
+  const md = buildGroupMd(sectionKey, fields, inst, (secKey, fp) => {
     return FIELD_LABELS[secKey + '.' + fp] || fp.split('.').pop() || ''
   }, (inst, fp, secKey) => {
     return getValueByPath(inst, secKey + '.' + fp)
   })
-  md = md.trimEnd() + '\n'
-  clipboardCopy(md)
+  if (md) blocks.push(md)
+  clipboardCopy(blocks.join('\n\n'))
 }
 
 export function copySubGroup(sectionKey: string, name: string, group: string): void {
@@ -120,13 +126,13 @@ export function copySubGroup(sectionKey: string, name: string, group: string): v
   const fields = getSectionFields(sectionKey, inst).filter(f => f.path.startsWith(group + '.'))
   if (fields.length === 0) return
   const groupLabel = SUB_LABELS[sectionKey + '.' + group] || group
-  let md = '# ' + inst.name + '\n\n## ' + sec.label + ' / ' + groupLabel + '\n\n'
+  const blocks: string[] = ['# ' + inst.name, '## ' + sec.label + ' / ' + groupLabel]
   for (const f of fields) {
     const label = FIELD_LABELS[sectionKey + '.' + f.path] || f.key
-    md += fieldToMd(label, f.value)
+    const line = fieldToMd(label, f.value)
+    if (line) blocks.push(line)
   }
-  if (md.trimEnd().split('\n').pop() !== '') md += '\n'
-  clipboardCopy(md.trimEnd() + '\n')
+  clipboardCopy(blocks.join('\n\n'))
 }
 
 export function copySubGroupCompare(sectionKey: string, group: string): void {
@@ -134,21 +140,21 @@ export function copySubGroupCompare(sectionKey: string, group: string): void {
   const sec = SECTIONS.find(s => s.key === sectionKey)
   if (!sec || !insts.length) return
   const groupLabel = SUB_LABELS[sectionKey + '.' + group] || group
-  let md = '# ' + sec.label + ' / ' + groupLabel + '\n\n'
+  const blocks: string[] = ['# ' + sec.label + ' / ' + groupLabel]
   let hasContent = false
   for (const inst of insts) {
     const fields = getSectionFields(sectionKey, inst).filter(f => f.path.startsWith(group + '.'))
     if (fields.length === 0) continue
     hasContent = true
-    md += '## ' + inst.name + '\n\n'
+    blocks.push('## ' + inst.name)
     for (const f of fields) {
       const label = FIELD_LABELS[sectionKey + '.' + f.path] || f.key
-      md += fieldToMd(label, f.value)
+      const line = fieldToMd(label, f.value)
+      if (line) blocks.push(line)
     }
-    md += '\n'
   }
   if (!hasContent) return
-  clipboardCopy(md.trimEnd() + '\n')
+  clipboardCopy(blocks.join('\n\n'))
 }
 
 export function copySection(sectionKey: string): void {
@@ -160,28 +166,27 @@ export function copySection(sectionKey: string): void {
     getSectionFields(sectionKey, inst).forEach(f => allFields.add(f.path))
   }
   const sorted = [...allFields].sort()
-  let md = '# ' + sec.label + '\n\n'
-  let hasContent = false
+  const blocks: string[] = ['# ' + sec.label]
   for (const inst of insts) {
-    const instMd = buildGroupMd(sectionKey, sorted, inst, (secKey, fp) => {
+    const md = buildGroupMd(sectionKey, sorted, inst, (secKey, fp) => {
       return FIELD_LABELS[secKey + '.' + fp] || fp.split('.').pop() || ''
     }, (inst, fp, secKey) => {
       const fields = getSectionFields(secKey, inst)
       const field = fields.find(f => f.path === fp)
       return field ? field.value : null
     })
-    if (!instMd) continue
-    hasContent = true
-    md += '## ' + inst.name + '\n\n' + instMd + '\n'
+    if (!md) continue
+    blocks.push('## ' + inst.name)
+    blocks.push(md)
   }
-  if (!hasContent) return
-  clipboardCopy(md.trimEnd() + '\n')
+  if (blocks.length <= 1) return
+  clipboardCopy(blocks.join('\n\n'))
 }
 
 export function copyAllSections(): void {
   const insts = DATA.filter(i => selectedInstances.has(i.name))
   if (!insts.length) return
-  let md = ''
+  const blocks: string[] = []
   for (const sec of SECTIONS) {
     if (!activeSections.has(sec.key)) continue
     const allFields = new Set<string>()
@@ -190,40 +195,29 @@ export function copyAllSections(): void {
     }
     const sorted = [...allFields].sort()
     if (sorted.length === 0) continue
-    let hasContent = false
-    md += '# ' + sec.label + '\n\n'
+    blocks.push('# ' + sec.label)
     for (const inst of insts) {
-      const instMd = buildGroupMd(sec.key, sorted, inst, (secKey, fp) => {
+      const md = buildGroupMd(sec.key, sorted, inst, (secKey, fp) => {
         return FIELD_LABELS[secKey + '.' + fp] || fp.split('.').pop() || ''
       }, (inst, fp, secKey) => {
         const fields = getSectionFields(secKey, inst)
         const field = fields.find(f => f.path === fp)
         return field ? field.value : null
       })
-      if (!instMd) continue
-      hasContent = true
-      md += '## ' + inst.name + '\n\n' + instMd + '\n'
-    }
-    if (!hasContent) {
-      md = md.slice(0, md.length - sec.label.length - 4)
-      continue
+      if (!md) continue
+      blocks.push('## ' + inst.name)
+      blocks.push(md)
     }
   }
-  if (md) clipboardCopy(md)
+  if (blocks.length) clipboardCopy(blocks.join('\n\n'))
 }
 
 export function copySelectedInstances(): void {
   const insts = DATA.filter(i => selectedInstances.has(i.name))
   if (!insts.length) return
-  let md = ''
+  const allBlocks: string[] = []
   for (const inst of insts) {
-    md += copyInstanceMd(inst)
+    allBlocks.push(copyInstanceMd(inst))
   }
-  if (md) clipboardCopy(md)
-}
-
-export function exportAll(): void {
-  let md = ''
-  for (const inst of DATA) md += copyInstanceMd(inst)
-  if (md) clipboardCopy(md)
+  if (allBlocks.length) clipboardCopy(allBlocks.join('\n\n'))
 }

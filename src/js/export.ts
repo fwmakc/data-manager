@@ -219,7 +219,7 @@ export function printContent(): void {
 export function exportSectionsSelected(): void {
   const insts = DATA.filter(i => selectedInstances.has(i.name))
   if (!insts.length) return
-  let md = ''
+  const blocks: string[] = []
   for (const sec of SECTIONS) {
     if (!activeSections.has(sec.key)) continue
     const allFields = new Set<string>()
@@ -228,26 +228,21 @@ export function exportSectionsSelected(): void {
     }
     const sorted = [...allFields].sort()
     if (sorted.length === 0) continue
-    let hasContent = false
-    md += '# ' + sec.label + '\n\n'
+    blocks.push('# ' + sec.label)
     for (const inst of insts) {
-      const instMd = buildGroupMd(sec.key, sorted, inst, (secKey, fp) => {
+      const md = buildGroupMd(sec.key, sorted, inst, (secKey, fp) => {
         return FIELD_LABELS[secKey + '.' + fp] || fp.split('.').pop() || ''
       }, (inst2, fp, secKey) => {
         const fields = getSectionFields(sec.key, inst2)
         const field = fields.find(f => f.path === fp)
         return field ? field.value : null
       })
-      if (!instMd) continue
-      hasContent = true
-      md += '## ' + inst.name + '\n\n' + instMd + '\n'
-    }
-    if (!hasContent) {
-      md = md.slice(0, md.length - sec.label.length - 4)
-      continue
+      if (!md) continue
+      blocks.push('## ' + inst.name)
+      blocks.push(md)
     }
   }
-  if (md) clipboardCopy(md)
+  if (blocks.length) clipboardCopy(blocks.join('\n\n'))
 }
 
 function d(): string {

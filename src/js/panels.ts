@@ -40,7 +40,7 @@ function getSubGroupsForSection(secKey: string): { key: string; label: string }[
   return result.sort((a, b) => a.label.localeCompare(b.label))
 }
 
-function getAllTags(): string[] {
+export function getAllTags(): string[] {
   const tags: Record<string, boolean> = {}
   DATA.forEach(i => (i.status || []).forEach(t => tags[t] = true))
   return Object.keys(tags).sort()
@@ -144,6 +144,7 @@ export function toggleSubGroup(key: string): void {
 
 export function resetTags(): void {
   activeTags.clear()
+  getAllTags().forEach(t => activeTags.add(t))
   renderTagsPanel()
   _renderSidebar()
   saveState()

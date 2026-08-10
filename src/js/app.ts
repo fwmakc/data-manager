@@ -1,8 +1,8 @@
 import { DATA, SECTIONS } from './data'
 import '../css/style.css'
-import { selectedInstances, activeSections, setSearchQuery, updateHash, saveState, loadState, parseHash } from './state'
+import { selectedInstances, activeSections, activeTags, setSearchQuery, updateHash, saveState, loadState, parseHash } from './state'
 import { renderSidebar, renderMain } from './render'
-import { renderSectionsPanel, renderTagsPanel, renderExportPanel, resetSections, clearSections, resetTags, clearTags, toggleTag, toggleSubGroup, setRenderFns } from './panels'
+import { renderSectionsPanel, renderTagsPanel, renderExportPanel, resetSections, clearSections, resetTags, clearTags, toggleTag, toggleSubGroup, setRenderFns, getAllTags } from './panels'
 import { togglePanel, applyVisiblePanels, initDragSystem } from './layout'
 import { copyValue, runAction, copyInstance, copySingleSection, copySubGroup, copySubGroupCompare, copySection, copyAllSections, copySelectedInstances } from './copy'
 import { exportTable, saveMD, saveCSV, exportCSV, exportExcel, saveExcel, saveODS, printContent, exportSectionsSelected } from './export'
@@ -99,6 +99,7 @@ function init(): void {
   loadState()
   parseHash()
   if (!selectedInstances.size) SECTIONS.forEach(s => activeSections.add(s.key))
+  if (!activeTags.size) getAllTags().forEach(t => activeTags.add(t))
 
   renderSectionsPanel()
   renderTagsPanel()

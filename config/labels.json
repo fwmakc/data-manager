@@ -1,0 +1,17 @@
+{
+  "aliases": "Алиасы",
+  "base": "Base Auth",
+  "base.admin": "admin",
+  "ssh": "SSH",
+  "ssh.user": "пользователь",
+  "ssh.password": "пароль",
+  "db": "DB",
+  "db.name": "имя базы",
+  "db.primary": "основное подключение",
+  "db.primary.user": "пользователь",
+  "db.primary.password": "пароль",
+  "apiv1": "APIv1",
+  "apiv1.port": "порт в енв",
+  "apiv2": "APIv2",
+  "apiv2.port": "порт в енв"
+}

@@ -1,7 +1,29 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import { defineConfig, type Plugin } from 'vite'
+import { resolve } from 'path'
+import { viteSingleFile } from 'vite-plugin-singlefile'
 
-// https://vite.dev/config/
+function removeModuleType(): Plugin {
+  return {
+    name: 'remove-module-type',
+    enforce: 'post',
+    apply: 'build',
+    transformIndexHtml(html) {
+      return html.replace(/<script type="module"/g, '<script')
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [vue()],
+  root: 'src',
+  base: './',
+  plugins: [viteSingleFile(), removeModuleType()],
+  build: {
+    outDir: resolve(__dirname, 'dist'),
+    emptyOutDir: true,
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src/js'),
+    },
+  },
 })

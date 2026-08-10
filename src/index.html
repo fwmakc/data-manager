@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Менеджер данных</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div class="header">
+  <h1>Менеджер данных</h1>
+  <div class="header-toggles">
+    <button class="header-toggle-btn active" id="toggleList" onclick="togglePanel('list')">Список</button>
+    <button class="header-toggle-btn active" id="toggleTags" onclick="togglePanel('tags')">Теги</button>
+    <button class="header-toggle-btn active" id="toggleSections" onclick="togglePanel('sections')">Секции</button>
+    <button class="header-toggle-btn active" id="toggleExport" onclick="togglePanel('export')">Экспорт</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="panel-zone left" id="zoneLeft"></div>
+  <div class="main" id="mainContent">
+    <div class="empty-state">Выберите инстанс слева</div>
+  </div>
+  <div class="panel-zone right" id="zoneRight"></div>
+</div>
+
+<div id="panelStore" style="display:none">
+  <div class="panel panel-sections" id="panelSections">
+    <div class="panel-title" data-panel="sections">Секции</div>
+    <div class="panel-btn-row">
+      <button class="panel-btn" onclick="resetSections()">Все</button>
+      <button class="panel-btn" onclick="clearSections()">Сброс</button>
+    </div>
+    <div class="panel-body" id="sectionsBody"></div>
+  </div>
+  <div class="panel panel-tags" id="panelTags">
+    <div class="panel-title" data-panel="tags">Теги</div>
+    <div class="panel-btn-row">
+      <button class="panel-btn" onclick="resetTags()">Все</button>
+      <button class="panel-btn" onclick="clearTags()">Сброс</button>
+    </div>
+    <div class="panel-body" id="tagsBody"></div>
+  </div>
+  <div class="panel panel-list" id="panelList">
+    <div class="panel-title" data-panel="list">Список</div>
+    <div class="search-box">
+      <input type="text" id="search" placeholder="Фильтр">
+    </div>
+    <div class="panel-btn-row">
+      <button class="panel-btn" onclick="selectAll()">Все</button>
+      <button class="panel-btn" onclick="selectNone()">Сброс</button>
+    </div>
+    <div class="panel-body" id="instanceList"></div>
+    <div class="instance-count" id="instanceCount"></div>
+  </div>
+  <div class="panel panel-export" id="panelExport">
+    <div class="panel-title" data-panel="export">Экспорт</div>
+    <div class="panel-body" id="exportBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Скопировано</div>
+
+<script type="module" src="/js/app.ts"></script>
+</body>
+</html>

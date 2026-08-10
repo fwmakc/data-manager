@@ -1,0 +1,16 @@
+[
+  [
+    {
+      "name": "site",
+      "method": "url",
+      "data": "https://{name}"
+    }
+  ],
+  [
+    {
+      "name": "ssh",
+      "method": "buffer",
+      "data": "ssh {ssh.user}@192.168.0.0"
+    }
+  ]
+]

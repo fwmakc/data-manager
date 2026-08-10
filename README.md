@@ -1,5 +1,55 @@
-# Vue 3 + TypeScript + Vite
+# data-manager
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+App for organizing and managing your data.
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## Getting started
+
+```bash
+npm install
+npm run dev
+```
+
+Opens at http://localhost:5173/
+
+## Build
+
+```bash
+npm run build
+```
+
+Produces a single `dist/index.html` file that can be opened directly in a browser.
+
+## Preview build
+
+```bash
+npm run preview
+```
+
+## Structure
+
+```
+config/
+  actions.json    — actions (url/buffer buttons for instances)
+  labels.json     — field and section labels
+projects/
+  *.json          — instance data (one file per instance)
+src/
+  index.html
+  css/style.css
+  js/             — TypeScript modules
+```
+
+## Adding an instance
+
+Create a file `projects/<name>.json`:
+
+```json
+{
+  "name": "example.com",
+  "status": ["active"],
+  "aliases": ["alias.com"],
+  ...
+}
+```
+
+Fields and sections are defined in `config/labels.json`.

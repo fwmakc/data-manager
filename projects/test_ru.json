@@ -1,0 +1,28 @@
+{
+  "name": "test.ru",
+  "status": [
+    "active"
+  ],
+  "aliases": [
+  ],
+  "base": {
+    "admin": "admin:1234"
+  },
+  "ssh": {
+    "user": "admin",
+    "password": "1234"
+  },
+  "db": {
+    "name": "test",
+    "primary": {
+      "user": "root",
+      "password": "1234"
+    }
+  },
+  "apiv1": {
+    "port": "3000"
+  },
+  "apiv2": {
+    "port": "5000"
+  }
+}

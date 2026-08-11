@@ -1,13 +1,13 @@
 import { DATA, ACTIONS, SECTIONS, FIELD_LABELS, SUB_LABELS, sortFieldsByLabels } from './data'
-import { selectedInstances, activeSections, activeTags, hiddenSubGroups, searchQuery, dataSearchQuery, saveState, updateHash } from './state'
+import { selectedInstances, activeSections, activeFilters, hiddenSubGroups, searchQuery, dataSearchQuery, saveState, updateHash } from './state'
 import { getSectionFields, fmt, fmtCopy, escHtml, escAttr } from './helpers'
 import { copyValue, resolveAction, runAction, copyInstance, copySingleSection, copySubGroup, copySubGroupCompare, copySection } from './copy'
 
 export function isVisible(inst: Record<string, any>): boolean {
   const q = searchQuery.toLowerCase()
   const matchName = !q || inst.name.toLowerCase().includes(q)
-  const matchTag = activeTags.size === 0 || (inst.status || []).some((t: string) => activeTags.has(t))
-  return matchName && matchTag
+  const matchFilter = activeFilters.size === 0 || (inst.tags || []).some((t: string) => activeFilters.has(t))
+  return matchName && matchFilter
 }
 
 export function fieldMatchesSearch(value: any): boolean {
@@ -38,7 +38,7 @@ export function renderSidebar(): void {
     if (!isVisible(inst)) continue
     const checked = selectedInstances.has(inst.name) ? 'checked' : ''
     const active = selectedInstances.size === 1 && selectedInstances.has(inst.name) ? 'active' : ''
-    const statuses = (inst.status || []).map((s: string) => `<span class="status-tag">${escHtml(s)}</span>`).join('')
+    const statuses = (inst.tags || []).map((s: string) => `<span class="status-tag">${escHtml(s)}</span>`).join('')
     listHtml += `<div class="instance-item ${active}" data-name="${escAttr(inst.name)}">`
     listHtml += `<input type="checkbox" ${checked} onclick="event.stopPropagation(); toggleInstance('${escAttr(inst.name)}')">`
     listHtml += `<span class="site-name" onclick="if(event.ctrlKey||event.metaKey){event.stopPropagation();toggleInstance('${escAttr(inst.name)}')}else{clickInstance('${escAttr(inst.name)}')}">${escHtml(inst.name)}</span>`
@@ -144,7 +144,7 @@ function renderCompare(insts: Record<string, any>[], container: HTMLElement): vo
     for (const row of ACTIONS) {
       html += '<tr class="action-row"><td></td>'
       for (const inst of insts) {
-        html += '<td>'
+        html += '<td><div class="action-cell">'
         for (const act of row) {
           const resolved = resolveAction(inst, act.name)
           if (!resolved) continue
@@ -154,7 +154,7 @@ function renderCompare(insts: Record<string, any>[], container: HTMLElement): vo
             html += `<button class="action-btn" onclick="runAction('${escAttr(inst.name)}', '${escAttr(act.name)}')">${escHtml(act.name)}</button>`
           }
         }
-        html += '</td>'
+        html += '</div></td>'
       }
       html += '</tr>'
     }
@@ -194,8 +194,8 @@ function renderCompare(insts: Record<string, any>[], container: HTMLElement): vo
       } else {
         currentGroup = ''
       }
-      const label = FIELD_LABELS[sec.key + '.' + fp] || fp.split('.').pop()
-      html += `<tr><td class="field-path copyable-header" onclick="copyFieldCompare('${sec.key}', '${escAttr(fp)}')">${escHtml(label)}</td>`
+      const label = fp === sec.key ? '' : (FIELD_LABELS[sec.key + '.' + fp] || fp.split('.').pop())
+      html += `<tr><td class="field-path ${label ? 'copyable-header' : ''}" ${label ? `onclick="copyFieldCompare('${sec.key}', '${escAttr(fp)}')"` : ''}>${escHtml(label)}</td>`
       for (const inst of insts) {
         const fields = getSectionFields(sec.key, inst)
         const field = fields.find(f => f.path === fp)

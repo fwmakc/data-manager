@@ -1,6 +1,7 @@
 import { DATA, SECTIONS, FIELD_LABELS, SUB_LABELS } from './data'
-import { activeSections, activeTags, hiddenSubGroups, saveState } from './state'
+import { activeSections, activeFilters, hiddenSubGroups, selectedInstances, saveState, updateHash } from './state'
 import { getSectionFields, escHtml, escAttr } from './helpers'
+import { isVisible } from './render'
 
 type RenderFn = () => void
 let _renderSidebar: RenderFn = () => {}
@@ -42,7 +43,7 @@ function getSubGroupsForSection(secKey: string): { key: string; label: string }[
 
 export function getAllTags(): string[] {
   const tags: Record<string, boolean> = {}
-  DATA.forEach(i => (i.status || []).forEach(t => tags[t] = true))
+  DATA.forEach(i => (i.tags || []).forEach(t => tags[t] = true))
   return Object.keys(tags).sort()
 }
 
@@ -81,13 +82,27 @@ export function renderSectionsPanel(): void {
 export function renderTagsPanel(): void {
   const body = document.getElementById('tagsBody')!
   const allTags = getAllTags()
-  let html = '<div style="display:flex;flex-wrap:wrap;gap:4px;padding:4px">'
+  let html = '<div class="tags-wrap">'
   for (const tag of allTags) {
-    const isActive = activeTags.has(tag)
-    html += `<label class="tag-btn ${isActive ? 'active' : ''}" onclick="toggleTag('${escAttr(tag)}')">${escHtml(tag)}</label>`
+    const visibleWithTag = DATA.filter(i => (i.tags || []).includes(tag) && isVisible(i))
+    const allSelected = visibleWithTag.length > 0 && visibleWithTag.every(i => selectedInstances.has(i.name))
+    html += `<label class="tag-btn ${allSelected ? 'active' : ''}" onclick="toggleTagSelect('${escAttr(tag)}')">${escHtml(tag)}</label>`
   }
   html += '</div>'
   body.innerHTML = html
+}
+
+export function toggleTagSelect(tag: string): void {
+  const visibleWithTag = DATA.filter(i => (i.tags || []).includes(tag) && isVisible(i))
+  const allSelected = visibleWithTag.every(i => selectedInstances.has(i.name))
+  for (const inst of visibleWithTag) {
+    if (allSelected) selectedInstances.delete(inst.name)
+    else selectedInstances.add(inst.name)
+  }
+  saveState()
+  updateHash()
+  renderTagsPanel()
+  _renderSidebar()
 }
 
 export function renderExportPanel(): void {
@@ -142,25 +157,37 @@ export function toggleSubGroup(key: string): void {
   saveState()
 }
 
-export function resetTags(): void {
-  activeTags.clear()
-  getAllTags().forEach(t => activeTags.add(t))
-  renderTagsPanel()
+export function renderFilterPanel(): void {
+  const body = document.getElementById('filterBody')!
+  const allTags = getAllTags()
+  let html = '<div class="tags-wrap">'
+  for (const tag of allTags) {
+    const isActive = activeFilters.has(tag)
+    html += `<label class="tag-btn ${isActive ? 'active' : ''}" onclick="toggleFilter('${escAttr(tag)}')">${escHtml(tag)}</label>`
+  }
+  html += '</div>'
+  body.innerHTML = html
+}
+
+export function resetFilters(): void {
+  activeFilters.clear()
+  getAllTags().forEach(t => activeFilters.add(t))
+  renderFilterPanel()
   _renderSidebar()
   saveState()
 }
 
-export function clearTags(): void {
-  activeTags.clear()
-  renderTagsPanel()
+export function clearFilters(): void {
+  activeFilters.clear()
+  renderFilterPanel()
   _renderSidebar()
   saveState()
 }
 
-export function toggleTag(tag: string): void {
-  if (activeTags.has(tag)) activeTags.delete(tag)
-  else activeTags.add(tag)
-  renderTagsPanel()
+export function toggleFilter(tag: string): void {
+  if (activeFilters.has(tag)) activeFilters.delete(tag)
+  else activeFilters.add(tag)
+  renderFilterPanel()
   _renderSidebar()
   saveState()
 }

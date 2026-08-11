@@ -248,6 +248,13 @@ body {
 }
 .tree-children .tree-label.hidden-sg { opacity: .4; }
 
+.tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+}
+
 .tag-btn {
   display: inline-block;
   padding: 4px 12px;
@@ -471,6 +478,9 @@ body {
 }
 .compare-table .action-row .action-btn {
   margin-right: 6px;
+}
+.action-cell {
+  display: flex;
 }
 
 .copy-section-btn, .copyable-header {

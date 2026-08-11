@@ -1,8 +1,8 @@
 import { DATA, SECTIONS } from './data'
 import '../css/style.css'
-import { selectedInstances, activeSections, activeTags, setSearchQuery, setDataSearchQuery, dataSearchQuery, updateHash, saveState, loadState, parseHash } from './state'
+import { selectedInstances, activeSections, activeFilters, setSearchQuery, setDataSearchQuery, dataSearchQuery, updateHash, saveState, loadState, parseHash } from './state'
 import { renderSidebar, renderMain } from './render'
-import { renderSectionsPanel, renderTagsPanel, renderExportPanel, resetSections, clearSections, resetTags, clearTags, toggleTag, toggleSubGroup, setRenderFns, getAllTags } from './panels'
+import { renderSectionsPanel, renderTagsPanel, renderExportPanel, resetSections, clearSections, toggleSubGroup, setRenderFns, getAllTags, renderFilterPanel, resetFilters, clearFilters, toggleFilter, toggleTagSelect } from './panels'
 import { togglePanel, applyVisiblePanels, initDragSystem } from './layout'
 import { copyValue, runAction, copyInstance, copySingleSection, copySubGroup, copySubGroupCompare, copySection, copyFieldCompare, copyAllSections, copySelectedInstances } from './copy'
 import { exportTable, saveMD, saveCSV, exportCSV, exportExcel, saveExcel, saveODS, printContent, exportSectionsSelected } from './export'
@@ -13,6 +13,7 @@ function toggleInstance(name: string): void {
   else selectedInstances.add(name)
   updateHash()
   renderSidebar()
+  renderTagsPanel()
   renderMain()
   saveState()
 }
@@ -22,6 +23,7 @@ function clickInstance(name: string): void {
   selectedInstances.add(name)
   updateHash()
   renderSidebar()
+  renderTagsPanel()
   renderMain()
   saveState()
 }
@@ -30,6 +32,7 @@ function selectAll(): void {
   DATA.forEach(i => selectedInstances.add(i.name))
   updateHash()
   renderSidebar()
+  renderTagsPanel()
   renderMain()
   saveState()
 }
@@ -38,6 +41,7 @@ function selectNone(): void {
   selectedInstances.clear()
   updateHash()
   renderSidebar()
+  renderTagsPanel()
   renderMain()
   saveState()
 }
@@ -74,9 +78,10 @@ function init(): void {
   g.toggleSection = toggleSection
   g.resetSections = resetSections
   g.clearSections = clearSections
-  g.resetTags = resetTags
-  g.clearTags = clearTags
-  g.toggleTag = toggleTag
+  g.resetFilters = resetFilters
+  g.clearFilters = clearFilters
+  g.toggleFilter = toggleFilter
+  g.toggleTagSelect = toggleTagSelect
   g.toggleSubGroup = toggleSubGroup
   g.copyValue = copyValue
   g.runAction = runAction
@@ -134,10 +139,11 @@ function init(): void {
   loadState()
   parseHash()
   if (!selectedInstances.size) SECTIONS.forEach(s => activeSections.add(s.key))
-  if (!activeTags.size) getAllTags().forEach(t => activeTags.add(t))
+  if (!activeFilters.size) getAllTags().forEach(t => activeFilters.add(t))
 
   renderSectionsPanel()
   renderTagsPanel()
+  renderFilterPanel()
   renderExportPanel()
   renderSidebar()
   initDragSystem()

@@ -18,6 +18,7 @@
   <div class="header-toggles">
     <button class="header-toggle-btn active" id="toggleList" onclick="togglePanel('list')">Список</button>
     <button class="header-toggle-btn active" id="toggleTags" onclick="togglePanel('tags')">Теги</button>
+    <button class="header-toggle-btn active" id="toggleFilter" onclick="togglePanel('filter')">Фильтр</button>
     <button class="header-toggle-btn active" id="toggleSections" onclick="togglePanel('sections')">Секции</button>
     <button class="header-toggle-btn active" id="toggleExport" onclick="togglePanel('export')">Экспорт</button>
   </div>
@@ -42,17 +43,21 @@
   </div>
   <div class="panel panel-tags" id="panelTags">
     <div class="panel-title" data-panel="tags">Теги</div>
-    <div class="panel-btn-row">
-      <button class="panel-btn" onclick="resetTags()">Все</button>
-      <button class="panel-btn" onclick="clearTags()">Сброс</button>
-    </div>
     <div class="panel-body" id="tagsBody"></div>
   </div>
-  <div class="panel panel-list" id="panelList">
-    <div class="panel-title" data-panel="list">Список</div>
+  <div class="panel panel-filter" id="panelFilter">
+    <div class="panel-title" data-panel="filter">Фильтр</div>
     <div class="search-box">
       <input type="text" id="search" placeholder="Фильтр">
     </div>
+    <div class="panel-btn-row">
+      <button class="panel-btn" onclick="resetFilters()">Все</button>
+      <button class="panel-btn" onclick="clearFilters()">Сброс</button>
+    </div>
+    <div class="panel-body" id="filterBody"></div>
+  </div>
+  <div class="panel panel-list" id="panelList">
+    <div class="panel-title" data-panel="list">Список</div>
     <div class="panel-btn-row">
       <button class="panel-btn" onclick="selectAll()">Все</button>
       <button class="panel-btn" onclick="selectNone()">Сброс</button>

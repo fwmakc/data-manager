@@ -1,6 +1,5 @@
 import type { PanelEntry, VisiblePanels, PanelLayout } from './types'
 import { visiblePanels, panelLayout, saveState } from './state'
-import { renderLayout as doRenderLayout } from './layout'
 
 export function togglePanel(key: string): void {
   visiblePanels[key as keyof VisiblePanels] = !visiblePanels[key as keyof VisiblePanels]
@@ -10,20 +9,20 @@ export function togglePanel(key: string): void {
 
 export function applyVisiblePanels(): void {
   const btnMap: Record<string, string> = {
-    sections: 'toggleSections', tags: 'toggleTags', list: 'toggleList', export: 'toggleExport'
+    sections: 'toggleSections', tags: 'toggleTags', filter: 'toggleFilter', list: 'toggleList', export: 'toggleExport'
   }
   for (const key in btnMap) {
     const btn = document.getElementById(btnMap[key])!
     if (visiblePanels[key as keyof typeof visiblePanels]) btn.classList.add('active')
     else btn.classList.remove('active')
   }
-  doRenderLayout()
+  renderLayout()
 }
 
 export function renderLayout(): void {
   const store = document.getElementById('panelStore')!
   const panelMap: Record<string, string> = {
-    sections: 'panelSections', tags: 'panelTags', list: 'panelList', export: 'panelExport'
+    sections: 'panelSections', tags: 'panelTags', filter: 'panelFilter', list: 'panelList', export: 'panelExport'
   }
   const zones: Record<string, HTMLElement> = {
     left: document.getElementById('zoneLeft')!,
@@ -186,10 +185,10 @@ export function initDragSystem(): void {
       const target = getTargetZone(ev)
       if (target && panelId) {        const drop = findDropPosition(ev, target.el)
         updateLayoutForDrop(panelId, target.key, drop)
-        doRenderLayout()
+        renderLayout()
         saveState()
       } else {
-        doRenderLayout()
+        renderLayout()
       }
     }
 

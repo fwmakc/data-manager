@@ -34,7 +34,7 @@ Each file in `projects/` is one instance. The filename is ignored — the `name`
 ```json
 {
   "name": "dev.test.ru",
-  "status": ["active"],
+  "tags": ["active"],
   "aliases": ["alias.test.ru"],
   "base": {
     "admin": "admin:1234"
@@ -58,11 +58,12 @@ Each file in `projects/` is one instance. The filename is ignored — the `name`
 
 ### Required fields
 
-| Field     | Type       | Description                    |
-|-----------|------------|--------------------------------|
-| `name`    | `string`   | Unique instance identifier     |
-| `status`  | `string[]` | Tags shown in the sidebar      |
-| `aliases` | `string[]` | Alternative names (optional)  |
+The fields `name` and `tags` are **required** and hardcoded in the app logic. They cannot be defined in `labels.json` and will not appear as sections.
+
+| Field     | Type       | Description                                  |
+|-----------|------------|----------------------------------------------|
+| `name`    | `string`   | Unique instance identifier                   |
+| `tags`    | `string[]` | Tags for filtering and bulk selection        |
 
 All other fields are arbitrary — they are rendered based on `labels.json`.
 

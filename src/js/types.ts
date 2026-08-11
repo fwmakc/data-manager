@@ -1,6 +1,6 @@
 export interface Instance {
   name: string
-  status: string[]
+  tags: string[]
   aliases: string[]
   [key: string]: any
 }
@@ -49,6 +49,7 @@ export interface PanelLayout {
 export interface VisiblePanels {
   sections: boolean
   tags: boolean
+  filter: boolean
   list: boolean
   export: boolean
 }

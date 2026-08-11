@@ -111,9 +111,15 @@ export function buildGroupMd(
       currentGroup = ''
     }
     const label = getLabel ? getLabel(secKey, fp) : (FIELD_LABELS[`${secKey}.${fp}`] || fp.split('.').pop() || '')
-    const value = getValue ? getValue(inst, fp, secKey) : null
-    const line = fieldToMd(label, value)
-    if (line) currentRows.push(line)
+    if (fp === secKey) {
+      const value = inst[fp]
+      const str = fmtCopy(value)
+      if (str) currentRows.push(str)
+    } else {
+      const value = getValue ? getValue(inst, fp, secKey) : null
+      const line = fieldToMd(label, value)
+      if (line) currentRows.push(line)
+    }
   }
   flushGroup()
 

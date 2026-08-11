@@ -24,9 +24,11 @@ export function sortFieldsByLabels(fields: string[]): string[] {
 }
 
 export const SECTIONS: Section[] = (() => {
+  const skip = new Set(['name', 'tags'])
   const sections: Section[] = []
   const allKeys = Object.keys(LABELS)
   for (const key of allKeys) {
+    if (skip.has(key)) continue
     const dots = (key.match(/\./g) || []).length
     if (dots === 0) {
       sections.push({ key, label: LABELS[key] })

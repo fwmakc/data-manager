@@ -3,7 +3,7 @@ import { DATA } from './data'
 
 export const selectedInstances = new Set<string>()
 export const activeSections = new Set<string>()
-export const activeTags = new Set<string>()
+export const activeFilters = new Set<string>()
 export const hiddenSubGroups = new Set<string>()
 export let searchQuery = ''
 export let dataSearchQuery = ''
@@ -13,9 +13,9 @@ export function setSearchQuery(val: string): void {
 export function setDataSearchQuery(val: string): void {
   dataSearchQuery = val
 }
-export const visiblePanels = { sections: true, tags: true, list: true, export: true }
+export const visiblePanels = { sections: true, tags: true, filter: true, list: true, export: true }
 export let panelLayout: PanelLayout = {
-  left: [{ id: 'list', row: 0, col: 0 }, { id: 'tags', row: 1, col: 0 }],
+  left: [{ id: 'list', row: 0, col: 0 }, { id: 'tags', row: 1, col: 0 }, { id: 'filter', row: 2, col: 0 }],
   right: [{ id: 'sections', row: 0, col: 0 }, { id: 'export', row: 1, col: 0 }],
 }
 
@@ -41,7 +41,7 @@ export function updateHash(): void {
 export function saveState(): void {
   localStorage.setItem('am_selected', JSON.stringify([...selectedInstances]))
   localStorage.setItem('am_sections', JSON.stringify([...activeSections]))
-  localStorage.setItem('am_tags', JSON.stringify([...activeTags]))
+  localStorage.setItem('am_filters', JSON.stringify([...activeFilters]))
   localStorage.setItem('am_subgroups', JSON.stringify([...hiddenSubGroups]))
   localStorage.setItem('am_visiblepanels', JSON.stringify(visiblePanels))
   localStorage.setItem('am_layout', JSON.stringify(panelLayout))
@@ -58,7 +58,11 @@ export function loadState(): void {
   } catch (_e) {}
   try {
     const raw = localStorage.getItem('am_tags')
-    if (raw) { const t = JSON.parse(raw); if (Array.isArray(t)) { activeTags.clear(); t.forEach((x: string) => activeTags.add(x)) } }
+    if (raw) { const t = JSON.parse(raw); if (Array.isArray(t)) { /* legacy am_tags migration */ } }
+  } catch (_e) {}
+  try {
+    const raw = localStorage.getItem('am_filters')
+    if (raw) { const f = JSON.parse(raw); if (Array.isArray(f)) { activeFilters.clear(); f.forEach((x: string) => activeFilters.add(x)) } }
   } catch (_e) {}
   try {
     const raw = localStorage.getItem('am_subgroups')
@@ -72,6 +76,13 @@ export function loadState(): void {
     const raw = localStorage.getItem('am_layout')
     if (raw) { const l = JSON.parse(raw); if (l) panelLayout = l }
   } catch (_e) {}
+  if (!panelLayout.left.some(e => e.id === 'filter')) {
+    const maxRow = panelLayout.left.reduce((m, e) => Math.max(m, e.row), -1)
+    panelLayout.left.push({ id: 'filter', row: maxRow + 1, col: 0 })
+  }
+  if (!(visiblePanels as any).filter) {
+    (visiblePanels as any).filter = true
+  }
 }
 
 export function parseHash(): void {

@@ -22,6 +22,11 @@ function getFlatFields(): { insts: typeof DATA; structure: { sectionKey: string;
   return { insts, structure }
 }
 
+function getFieldLabel(sectionKey: string, fieldPath: string): string {
+  if (fieldPath === sectionKey) return ''
+  return FIELD_LABELS[sectionKey + '.' + fieldPath] || fieldPath.split('.').pop() || ''
+}
+
 function getFieldValue(inst: Record<string, any>, sectionKey: string, fieldPath: string): any {
   const fields = getSectionFields(sectionKey, inst)
   const field = fields.find(f => f.path === fieldPath)
@@ -48,13 +53,13 @@ function buildTableRows(formatRow: (cols: string[]) => string): string[] | null 
       const subFields = sec.fields.filter(f => f.startsWith(part + '.'))
       for (const sf of subFields) {
         const fieldPath = sf.substring(part.length + 1)
-        const label = FIELD_LABELS[sec.sectionKey + '.' + sf] || fieldPath
+        const label = getFieldLabel(sec.sectionKey, sf)
         formattedRows.push(formatRow([label, ...insts.map(inst => fmtCellValue(getFieldValue(inst, sec.sectionKey, sf)))]))
       }
     }
     const topFields = sec.fields.filter(f => !f.includes('.'))
     for (const fp of topFields) {
-      const label = FIELD_LABELS[sec.sectionKey + '.' + fp] || fp
+      const label = getFieldLabel(sec.sectionKey, fp)
       formattedRows.push(formatRow([label, ...insts.map(inst => fmtCellValue(getFieldValue(inst, sec.sectionKey, fp)))]))
     }
   }
@@ -66,7 +71,6 @@ export function exportTable(): void {
   if (!rows) return
   let md = rows[0] + '\n'
   md += '| --- | ' + DATA.map(() => '---').join(' | ') + ' |\n'
-  md += '| **' + SECTIONS[0].label + '** | |\n'
   for (let i = 1; i < rows.length; i++) md += rows[i] + '\n'
   clipboardCopy(md)
 }
@@ -96,7 +100,7 @@ function buildCsvRows(): string[] | null {
       const subFields = sec.fields.filter(f => f.startsWith(part + '.'))
       for (const sf of subFields) {
         const fieldPath = sf.substring(part.length + 1)
-        const label = FIELD_LABELS[sec.sectionKey + '.' + sf] || fieldPath
+        const label = getFieldLabel(sec.sectionKey, sf)
         const vals = insts.map(inst => {
           const v = getFieldValue(inst, sec.sectionKey, sf)
           return '"' + fmtCellValue(v).replace(/"/g, '""') + '"'
@@ -106,7 +110,7 @@ function buildCsvRows(): string[] | null {
     }
     const topFields = sec.fields.filter(f => !f.includes('.'))
     for (const fp of topFields) {
-      const label = FIELD_LABELS[sec.sectionKey + '.' + fp] || fp
+      const label = getFieldLabel(sec.sectionKey, fp)
       const vals = insts.map(inst => {
         const v = getFieldValue(inst, sec.sectionKey, fp)
         return '"' + fmtCellValue(v).replace(/"/g, '""') + '"'
@@ -154,13 +158,13 @@ function buildSheetData(): string[][] | null {
       const subFields = sec.fields.filter(f => f.startsWith(part + '.'))
       for (const sf of subFields) {
         const fieldPath = sf.substring(part.length + 1)
-        const label = FIELD_LABELS[sec.sectionKey + '.' + sf] || fieldPath
+        const label = getFieldLabel(sec.sectionKey, sf)
         rows.push([label, ...insts.map(inst => fmtCellValue(getFieldValue(inst, sec.sectionKey, sf)))])
       }
     }
     const topFields = sec.fields.filter(f => !f.includes('.'))
     for (const fp of topFields) {
-      const label = FIELD_LABELS[sec.sectionKey + '.' + fp] || fp
+      const label = getFieldLabel(sec.sectionKey, fp)
       rows.push([label, ...insts.map(inst => fmtCellValue(getFieldValue(inst, sec.sectionKey, fp)))])
     }
   }
@@ -231,6 +235,7 @@ export function exportSectionsSelected(): void {
     blocks.push('# ' + sec.label)
     for (const inst of insts) {
       const md = buildGroupMd(sec.key, sorted, inst, (secKey, fp) => {
+        if (fp === secKey) return ''
         return FIELD_LABELS[secKey + '.' + fp] || fp.split('.').pop() || ''
       }, (inst2, fp, secKey) => {
         const fields = getSectionFields(sec.key, inst2)

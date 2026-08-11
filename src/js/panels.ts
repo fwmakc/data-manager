@@ -173,6 +173,7 @@ export function resetFilters(): void {
   activeFilters.clear()
   getAllTags().forEach(t => activeFilters.add(t))
   renderFilterPanel()
+  renderTagsPanel()
   _renderSidebar()
   saveState()
 }
@@ -180,6 +181,7 @@ export function resetFilters(): void {
 export function clearFilters(): void {
   activeFilters.clear()
   renderFilterPanel()
+  renderTagsPanel()
   _renderSidebar()
   saveState()
 }
@@ -188,6 +190,7 @@ export function toggleFilter(tag: string): void {
   if (activeFilters.has(tag)) activeFilters.delete(tag)
   else activeFilters.add(tag)
   renderFilterPanel()
+  renderTagsPanel()
   _renderSidebar()
   saveState()
 }

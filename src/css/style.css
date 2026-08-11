@@ -44,6 +44,12 @@ body {
   font-weight: 600;
   white-space: nowrap;
 }
+span#appVersion {
+  font-weight: normal;
+  opacity: 0.35;
+  font-size: 0.8em;
+  padding-left: 0.8em;
+}
 .search-box {
   padding: 4px 8px;
   position: relative;

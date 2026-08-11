@@ -1,5 +1,7 @@
 import { DATA, SECTIONS } from './data'
 import '../css/style.css'
+import pkg from '../../package.json'
+
 import { selectedInstances, activeSections, activeFilters, setSearchQuery, setDataSearchQuery, dataSearchQuery, updateHash, saveState, loadState, parseHash } from './state'
 import { renderSidebar, renderMain } from './render'
 import { renderSectionsPanel, renderTagsPanel, renderExportPanel, resetSections, clearSections, toggleSubGroup, setRenderFns, getAllTags, renderFilterPanel, resetFilters, clearFilters, toggleFilter, toggleTagSelect } from './panels'
@@ -55,6 +57,8 @@ function toggleSection(key: string): void {
 }
 
 function init(): void {
+  document.getElementById('appVersion')!.textContent = pkg.version
+
   setRenderFns(renderSidebar, renderMain)
 
   document.getElementById('search')!.addEventListener('input', (e) => {

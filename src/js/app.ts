@@ -2,13 +2,14 @@ import { DATA, SECTIONS } from './data'
 import '../css/style.css'
 import pkg from '../../package.json'
 
-import { selectedInstances, activeSections, activeFilters, setSearchQuery, setDataSearchQuery, dataSearchQuery, updateHash, saveState, loadState, parseHash } from './state'
+import { selectedInstances, activeSections, activeFilters, setActiveTag, setSearchQuery, setDataSearchQuery, dataSearchQuery, updateHash, saveState, loadState, parseHash } from './state'
 import { renderSidebar, renderMain } from './render'
-import { renderSectionsPanel, renderTagsPanel, renderExportPanel, resetSections, clearSections, toggleSubGroup, setRenderFns, getAllTags, renderFilterPanel, resetFilters, clearFilters, toggleFilter, toggleTagSelect } from './panels'
+import { renderSectionsPanel, renderTagsPanel, renderExportPanel, resetSections, clearSections, toggleSubGroup, setRenderFns, getAllTags, renderFilterPanel, resetFilters, clearFilters, toggleFilter, selectTag, renderProjectsPanel } from './panels'
 import { togglePanel, applyVisiblePanels, initDragSystem } from './layout'
 import { copyValue, runAction, copyInstance, copySingleSection, copySubGroup, copySubGroupCompare, copySection, copyFieldCompare, copyAllSections, copySelectedInstances } from './copy'
 import { exportTable, saveMD, saveCSV, exportCSV, exportExcel, saveExcel, saveODS, printContent, exportSectionsSelected } from './export'
 import { getSectionFields, fmtCopy } from './helpers'
+import { initProject, switchProject as doSwitchProject, exportProject as doExportProject, importProjectZip, renameProject, deleteProject, setOnProjectListChanged } from './projects'
 
 function toggleInstance(name: string): void {
   if (selectedInstances.has(name)) selectedInstances.delete(name)
@@ -56,7 +57,31 @@ function toggleSection(key: string): void {
   saveState()
 }
 
-function init(): void {
+async function switchProjectAndRebuild(name: string): Promise<void> {
+  await doSwitchProject(name)
+  loadState()
+  if (!selectedInstances.size) {
+    activeSections.clear()
+    activeSections.add('actions')
+    SECTIONS.forEach(s => activeSections.add(s.key))
+    activeFilters.clear()
+    setActiveTag('')
+  }
+  renderSectionsPanel()
+  renderTagsPanel()
+  renderFilterPanel()
+  renderExportPanel()
+  renderProjectsPanel()
+  renderSidebar()
+  renderMain()
+  saveState()
+}
+
+function exportProjectZip(): void {
+  doExportProject()
+}
+
+async function init(): Promise<void> {
   document.getElementById('appVersion')!.textContent = pkg.version
 
   setRenderFns(renderSidebar, renderMain)
@@ -85,14 +110,13 @@ function init(): void {
   g.resetFilters = resetFilters
   g.clearFilters = clearFilters
   g.toggleFilter = toggleFilter
-  g.toggleTagSelect = toggleTagSelect
+  g.selectTag = selectTag
   g.toggleSubGroup = toggleSubGroup
   g.copyValue = copyValue
   g.runAction = runAction
   g.copyInstance = copyInstance
   g.copySingleSection = copySingleSection
-  g.copySubGroup = copySubGroup
-  g.copySubGroupCompare = copySubGroupCompare
+  g.copySubGroup = copySubGroupCompare
   g.copySection = copySection
   g.copyFieldCompare = copyFieldCompare
   g.copyAllSections = copyAllSections
@@ -106,6 +130,12 @@ function init(): void {
   g.saveODS = saveODS
   g.printContent = printContent
   g.exportSectionsSelected = exportSectionsSelected
+  g.switchProject = switchProjectAndRebuild
+  g.exportProjectZip = exportProjectZip
+  setOnProjectListChanged(renderProjectsPanel)
+  g.importProjectZip = importProjectZip
+  g.renameProject = renameProject
+  g.deleteProject = deleteProject
   g.clearDataSearch = () => {
     dataSearchEl.value = ''
     setDataSearchQuery('')
@@ -140,15 +170,23 @@ function init(): void {
     updateSearchCount()
   })
 
+  await initProject()
+
   loadState()
+  if (!selectedInstances.size) {
+    activeSections.clear()
+    activeSections.add('actions')
+    SECTIONS.forEach(s => activeSections.add(s.key))
+    activeFilters.clear()
+    setActiveTag('')
+  }
   parseHash()
-  if (!selectedInstances.size) SECTIONS.forEach(s => activeSections.add(s.key))
-  if (!activeFilters.size) getAllTags().forEach(t => activeFilters.add(t))
 
   renderSectionsPanel()
   renderTagsPanel()
   renderFilterPanel()
   renderExportPanel()
+  renderProjectsPanel()
   renderSidebar()
   initDragSystem()
   applyVisiblePanels()

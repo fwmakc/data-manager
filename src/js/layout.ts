@@ -9,7 +9,7 @@ export function togglePanel(key: string): void {
 
 export function applyVisiblePanels(): void {
   const btnMap: Record<string, string> = {
-    sections: 'toggleSections', tags: 'toggleTags', filter: 'toggleFilter', list: 'toggleList', export: 'toggleExport'
+    sections: 'toggleSections', tags: 'toggleTags', filter: 'toggleFilter', list: 'toggleList', export: 'toggleExport', projects: 'toggleProjects'
   }
   for (const key in btnMap) {
     const btn = document.getElementById(btnMap[key])!
@@ -22,7 +22,7 @@ export function applyVisiblePanels(): void {
 export function renderLayout(): void {
   const store = document.getElementById('panelStore')!
   const panelMap: Record<string, string> = {
-    sections: 'panelSections', tags: 'panelTags', filter: 'panelFilter', list: 'panelList', export: 'panelExport'
+    sections: 'panelSections', tags: 'panelTags', filter: 'panelFilter', list: 'panelList', export: 'panelExport', projects: 'panelProjects'
   }
   const zones: Record<string, HTMLElement> = {
     left: document.getElementById('zoneLeft')!,

@@ -52,4 +52,5 @@ export interface VisiblePanels {
   filter: boolean
   list: boolean
   export: boolean
+  projects: boolean
 }

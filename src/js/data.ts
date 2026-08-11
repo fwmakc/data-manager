@@ -1,29 +1,24 @@
-/// <reference types="vite/client" />
 import type { Instance, Actions, Labels, Section } from './types'
 
-const dataModules = import.meta.glob('../../projects/*.json', { eager: true }) as Record<string, { default: any }>
+export let DATA: Instance[] = []
+export let ACTIONS: Actions = []
+export let LABELS: Labels = {}
+export let LABEL_ORDER: string[] = []
+export let SECTIONS: Section[] = []
+export let FIELD_LABELS: Record<string, string> = {}
+export let SUB_LABELS: Record<string, string> = {}
 
-export const DATA: Instance[] = Object.values(dataModules)
-  .map(m => m.default)
-  .sort((a, b) => a.name.localeCompare(b.name))
-
-import actionsJson from '../../config/actions.json'
-import labelsJson from '../../config/labels.json'
-
-export const ACTIONS: Actions = actionsJson as Actions
-export const LABELS: Labels = labelsJson as Labels
-export const LABEL_ORDER: string[] = Object.keys(LABELS)
-
-export function sortFieldsByLabels(fields: string[]): string[] {
-  const order = LABEL_ORDER
-  return [...fields].sort((a, b) => {
-    const ia = order.indexOf(a)
-    const ib = order.indexOf(b)
-    return (ia === -1 ? Infinity : ia) - (ib === -1 ? Infinity : ib)
-  })
+export function initProjectData(data: Instance[], actions: Actions, labels: Labels): void {
+  DATA = data.sort((a, b) => a.name.localeCompare(b.name))
+  ACTIONS = actions
+  LABELS = labels
+  LABEL_ORDER = Object.keys(LABELS)
+  SECTIONS = buildSections()
+  FIELD_LABELS = buildFieldLabels()
+  SUB_LABELS = buildSubLabels()
 }
 
-export const SECTIONS: Section[] = (() => {
+function buildSections(): Section[] {
   const skip = new Set(['name', 'tags'])
   const sections: Section[] = []
   const allKeys = Object.keys(LABELS)
@@ -35,9 +30,9 @@ export const SECTIONS: Section[] = (() => {
     }
   }
   return sections
-})()
+}
 
-export const FIELD_LABELS: Record<string, string> = (() => {
+function buildFieldLabels(): Record<string, string> {
   const labels: Record<string, string> = {}
   const allKeys = Object.keys(LABELS)
   for (const key of allKeys) {
@@ -48,9 +43,9 @@ export const FIELD_LABELS: Record<string, string> = (() => {
     }
   }
   return labels
-})()
+}
 
-export const SUB_LABELS: Record<string, string> = (() => {
+function buildSubLabels(): Record<string, string> {
   const labels: Record<string, string> = {}
   const allKeys = Object.keys(LABELS)
   for (const key of allKeys) {
@@ -61,4 +56,13 @@ export const SUB_LABELS: Record<string, string> = (() => {
     }
   }
   return labels
-})()
+}
+
+export function sortFieldsByLabels(fields: string[]): string[] {
+  const order = LABEL_ORDER
+  return [...fields].sort((a, b) => {
+    const ia = order.indexOf(a)
+    const ib = order.indexOf(b)
+    return (ia === -1 ? Infinity : ia) - (ib === -1 ? Infinity : ib)
+  })
+}

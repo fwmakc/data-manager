@@ -1,7 +1,12 @@
 import type { PanelLayout } from './types'
 import { DATA } from './data'
+import { currentProject } from './project-name'
 
 export const selectedInstances = new Set<string>()
+export let activeTag = ''
+export function setActiveTag(val: string): void {
+  activeTag = val
+}
 export const activeSections = new Set<string>()
 export const activeFilters = new Set<string>()
 export const hiddenSubGroups = new Set<string>()
@@ -13,9 +18,9 @@ export function setSearchQuery(val: string): void {
 export function setDataSearchQuery(val: string): void {
   dataSearchQuery = val
 }
-export const visiblePanels = { sections: true, tags: true, filter: true, list: true, export: true }
+export const visiblePanels = { sections: true, tags: true, filter: true, list: true, export: true, projects: true }
 export let panelLayout: PanelLayout = {
-  left: [{ id: 'list', row: 0, col: 0 }, { id: 'tags', row: 1, col: 0 }, { id: 'filter', row: 2, col: 0 }],
+  left: [{ id: 'projects', row: 0, col: 0 }, { id: 'list', row: 1, col: 0 }, { id: 'tags', row: 2, col: 0 }, { id: 'filter', row: 3, col: 0 }],
   right: [{ id: 'sections', row: 0, col: 0 }, { id: 'export', row: 1, col: 0 }],
 }
 
@@ -38,39 +43,46 @@ export function updateHash(): void {
   history.replaceState(null, '', location.pathname + hash)
 }
 
+function pk(key: string): string {
+  return 'am_p:' + key
+}
+
 export function saveState(): void {
-  localStorage.setItem('am_selected', JSON.stringify([...selectedInstances]))
-  localStorage.setItem('am_sections', JSON.stringify([...activeSections]))
-  localStorage.setItem('am_filters', JSON.stringify([...activeFilters]))
-  localStorage.setItem('am_subgroups', JSON.stringify([...hiddenSubGroups]))
+  localStorage.setItem('am_project', currentProject)
+  localStorage.setItem(pk(currentProject) + ':selected', JSON.stringify([...selectedInstances]))
+  localStorage.setItem(pk(currentProject) + ':sections', JSON.stringify([...activeSections]))
+  localStorage.setItem(pk(currentProject) + ':filters', JSON.stringify([...activeFilters]))
+  localStorage.setItem(pk(currentProject) + ':subgroups', JSON.stringify([...hiddenSubGroups]))
+  localStorage.setItem(pk(currentProject) + ':activetag', activeTag)
   localStorage.setItem('am_visiblepanels', JSON.stringify(visiblePanels))
   localStorage.setItem('am_layout', JSON.stringify(panelLayout))
 }
 
-export function loadState(): void {
+export function loadState(project: string): void {
+  const p = pk(project)
   try {
-    const raw = localStorage.getItem('am_selected')
+    const raw = localStorage.getItem(p + ':selected')
     if (raw) { const s = JSON.parse(raw); if (Array.isArray(s)) s.forEach((x: string) => selectedInstances.add(x)) }
   } catch (_e) {}
   try {
-    const raw = localStorage.getItem('am_sections')
+    const raw = localStorage.getItem(p + ':sections')
     if (raw) { const s = JSON.parse(raw); if (Array.isArray(s)) { activeSections.clear(); s.forEach((x: string) => activeSections.add(x)) } }
   } catch (_e) {}
   try {
-    const raw = localStorage.getItem('am_tags')
-    if (raw) { const t = JSON.parse(raw); if (Array.isArray(t)) { /* legacy am_tags migration */ } }
-  } catch (_e) {}
-  try {
-    const raw = localStorage.getItem('am_filters')
+    const raw = localStorage.getItem(p + ':filters')
     if (raw) { const f = JSON.parse(raw); if (Array.isArray(f)) { activeFilters.clear(); f.forEach((x: string) => activeFilters.add(x)) } }
   } catch (_e) {}
   try {
-    const raw = localStorage.getItem('am_subgroups')
+    const raw = localStorage.getItem(p + ':subgroups')
     if (raw) { const sg = JSON.parse(raw); if (Array.isArray(sg)) { hiddenSubGroups.clear(); sg.forEach((x: string) => hiddenSubGroups.add(x)) } }
   } catch (_e) {}
   try {
+    const raw = localStorage.getItem(p + ':activetag')
+    if (raw) activeTag = raw
+  } catch (_e) {}
+  try {
     const raw = localStorage.getItem('am_visiblepanels')
-    if (raw) { const p = JSON.parse(raw); if (p) Object.assign(visiblePanels, p) }
+    if (raw) { const vp = JSON.parse(raw); if (vp) Object.assign(visiblePanels, vp) }
   } catch (_e) {}
   try {
     const raw = localStorage.getItem('am_layout')
@@ -82,6 +94,13 @@ export function loadState(): void {
   }
   if (!(visiblePanels as any).filter) {
     (visiblePanels as any).filter = true
+  }
+  if (!(visiblePanels as any).projects) {
+    (visiblePanels as any).projects = true
+  }
+  if (!panelLayout.right.some(e => e.id === 'projects') && !panelLayout.left.some(e => e.id === 'projects')) {
+    panelLayout.left.unshift({ id: 'projects', row: 0, col: 0 })
+    panelLayout.left.forEach(e => e.row++)
   }
 }
 

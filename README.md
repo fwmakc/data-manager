@@ -1,6 +1,6 @@
 # data-manager
 
-App for organizing and managing instance data. Single-file HTML output — works from `file://` protocol.
+App for organizing and managing instance data. Runs via Vite dev server.
 
 ## Getting started
 
@@ -9,27 +9,68 @@ npm install
 npm start
 ```
 
-Builds and opens at http://localhost:4173/
+Opens at http://localhost:5173/
+
+## Projects
+
+Data is organized into projects. Each project is a folder inside `projects/` with its own config and notes.
+
+```
+projects/
+  default/
+    config/
+      actions.json
+      labels.json
+    notes/
+      *.json
+  another-project/
+    config/
+      actions.json
+      labels.json
+    notes/
+      *.json
+```
+
+### Project management
+
+From the **Projects** panel:
+
+- **Switch project** — click project name to switch
+- **Rename** — pencil button, enter new name (error if name already taken)
+- **Delete** — cross button, confirmation required
+- **Export** — download current project as `.zip` archive
+- **Import** — select a `.zip` archive, extracts into `projects/` folder
+
+Settings (selections, filters, sections, tags) are saved per-project in localStorage.
+
+### Import rules
+
+- Archive is extracted into a folder named after the `.zip` file (`def2.zip` → `def2/`)
+- If `config/` and `notes/` are not at root, looks one level deeper (`def2/sub/config/` → `def2/config/`)
+- If neither `config/` nor `notes/` found — import fails
+- If project with same name exists — auto-renames (`def2` → `def2_1`)
 
 ## Structure
 
 ```
-config/
-  actions.json    — action buttons (url / buffer / file)
-  labels.json     — section and field labels
 projects/
-  *.json          — instance data (one file per instance)
+  <project>/
+    config/
+      actions.json    — action buttons (url / buffer / file)
+      labels.json     — section and field labels
+    notes/
+      *.json          — instance data (one file per instance)
 src/
   index.html
   css/style.css
-  js/             — TypeScript modules
+  js/                 — TypeScript modules
 ```
 
 ## Instances
 
-Each file in `projects/` is one instance. The filename is ignored — the `name` field is used as the identifier.
+Each file in `notes/` is one instance. The filename is ignored — the `name` field is used as the identifier.
 
-`projects/dev.test.ru.json`:
+`notes/dev.test.ru.json`:
 
 ```json
 {
@@ -190,6 +231,7 @@ The app supports several export formats from the sidebar:
 - **Save Excel** — downloads an `.xlsx` file
 - **Save ODS** — downloads an `.ods` file
 - **Print** — opens print dialog
+- **Export project** — downloads current project as `.zip`
 
 ## Search
 

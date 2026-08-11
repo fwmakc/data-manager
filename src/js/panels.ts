@@ -1,7 +1,8 @@
 import { DATA, SECTIONS, FIELD_LABELS, SUB_LABELS } from './data'
-import { activeSections, activeFilters, hiddenSubGroups, selectedInstances, saveState, updateHash } from './state'
+import { activeSections, activeFilters, hiddenSubGroups, selectedInstances, activeTag, setActiveTag, saveState, updateHash } from './state'
 import { getSectionFields, escHtml, escAttr } from './helpers'
 import { isVisible } from './render'
+import { projectList, currentProject } from './projects'
 
 type RenderFn = () => void
 let _renderSidebar: RenderFn = () => {}
@@ -84,25 +85,30 @@ export function renderTagsPanel(): void {
   const allTags = getAllTags()
   let html = '<div class="tags-wrap">'
   for (const tag of allTags) {
-    const visibleWithTag = DATA.filter(i => (i.tags || []).includes(tag) && isVisible(i))
-    const allSelected = visibleWithTag.length > 0 && visibleWithTag.every(i => selectedInstances.has(i.name))
-    html += `<label class="tag-btn ${allSelected ? 'active' : ''}" onclick="toggleTagSelect('${escAttr(tag)}')">${escHtml(tag)}</label>`
+    const hasVisible = DATA.filter(i => (i.tags || []).includes(tag) && isVisible(i)).length > 0
+    const isActive = tag === activeTag && hasVisible
+    html += `<label class="tag-btn ${isActive ? 'active' : ''}" onclick="selectTag('${escAttr(tag)}')">${escHtml(tag)}</label>`
   }
   html += '</div>'
   body.innerHTML = html
 }
 
-export function toggleTagSelect(tag: string): void {
-  const visibleWithTag = DATA.filter(i => (i.tags || []).includes(tag) && isVisible(i))
-  const allSelected = visibleWithTag.every(i => selectedInstances.has(i.name))
-  for (const inst of visibleWithTag) {
-    if (allSelected) selectedInstances.delete(inst.name)
-    else selectedInstances.add(inst.name)
+export function selectTag(tag: string): void {
+  if (activeTag === tag) {
+    setActiveTag('')
+    selectedInstances.clear()
+  } else {
+    setActiveTag(tag)
+    selectedInstances.clear()
+    DATA.forEach(i => {
+      if ((i.tags || []).includes(tag)) selectedInstances.add(i.name)
+    })
   }
   saveState()
   updateHash()
   renderTagsPanel()
   _renderSidebar()
+  _renderMain()
 }
 
 export function renderExportPanel(): void {
@@ -193,4 +199,25 @@ export function toggleFilter(tag: string): void {
   renderTagsPanel()
   _renderSidebar()
   saveState()
+}
+
+export function renderProjectsPanel(): void {
+  const body = document.getElementById('projectsBody')!
+  if (projectList.length === 0) {
+    body.innerHTML = '<div class="empty-projects">Нет проектов</div>'
+    return
+  }
+  let html = '<div class="project-list">'
+  for (const name of projectList) {
+    const isActive = name === currentProject
+    html += '<div class="project-row">'
+    html += `<button class="project-item ${isActive ? 'active' : ''}" onclick="switchProject('${escAttr(name)}')">${escHtml(name)}</button>`
+    html += `<button class="project-action" onclick="renameProject('${escAttr(name)}')" title="Переименовать">&#9998;</button>`
+    html += `<button class="project-action project-action-del" onclick="deleteProject('${escAttr(name)}')" title="Удалить">&times;</button>`
+    html += '</div>'
+  }
+  html += '</div>'
+  html += '<button class="export-btn" style="margin-top:8px" onclick="exportProjectZip()">Экспорт проекта</button>'
+  html += '<button class="export-btn" style="margin-top:4px" onclick="importProjectZip()">Импорт проекта</button>'
+  body.innerHTML = html
 }

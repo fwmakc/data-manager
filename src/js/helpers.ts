@@ -138,7 +138,7 @@ function d(): string {
   return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}_${String(n.getHours()).padStart(2, '0')}-${String(n.getMinutes()).padStart(2, '0')}-${String(n.getSeconds()).padStart(2, '0')}`
 }
 
-export function downloadFile(name: string, content: string, mime: string): void {
+export function downloadFile(name: string, content: string | Uint8Array, mime: string): void {
   const blob = new Blob([content], { type: mime })
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)

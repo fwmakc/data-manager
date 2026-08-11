@@ -3,7 +3,6 @@ import { resolve } from 'path'
 import { viteSingleFile } from 'vite-plugin-singlefile'
 import { readdirSync, statSync, readFileSync, mkdirSync, writeFileSync, rmSync, existsSync, cpSync, renameSync } from 'fs'
 import { join, extname } from 'path'
-import { unzipSync } from 'fflate'
 
 function removeModuleType(): Plugin {
   return {
@@ -95,54 +94,24 @@ function serveProjects(): Plugin {
         }
 
         if (req.method === 'POST' && url === '/projects/import') {
-          let body = Buffer.alloc(0)
-          req.on('data', (chunk: Buffer) => { body = Buffer.concat([body, chunk]) })
+          let body = ''
+          req.on('data', (chunk: Buffer) => { body += chunk.toString() })
           req.on('end', () => {
             try {
-              const queryName = (rawUrl.split('?')[1] || '').split('=')[1] || 'import'
-              const tmpDir = join(projectsDir, '__import_tmp_' + Date.now() + '__')
-              mkdirSync(tmpDir, { recursive: true })
-
-              const unzipped = unzipSync(new Uint8Array(body))
-              for (const [path, data] of Object.entries(unzipped) as [string, Uint8Array][]) {
-                if (path.endsWith('/')) continue
-                const filePath = join(tmpDir, path)
-                mkdirSync(join(filePath, '..'), { recursive: true })
-                writeFileSync(filePath, data)
-              }
-
-              let sourceDir = tmpDir
-              const hasRoot = readdirSync(tmpDir).some(e => {
-                return e === 'config' || e === 'notes'
-              })
-              if (!hasRoot) {
-                const subdirs = readdirSync(tmpDir).filter(e => statSync(join(tmpDir, e)).isDirectory())
-                const found = subdirs.find(e => {
-                  const contents = readdirSync(join(tmpDir, e))
-                  return contents.includes('config') || contents.includes('notes')
-                })
-                if (found) {
-                  sourceDir = join(tmpDir, found)
-                } else {
-                  rmSync(tmpDir, { recursive: true })
-                  res.statusCode = 400
-                  res.setHeader('Content-Type', 'application/json')
-                  res.end(JSON.stringify({ ok: false, error: 'В архиве нет папок config/ и notes/' }))
-                  return
-                }
-              }
-
-              let projectName = queryName
+              const { name, files } = JSON.parse(body)
+              let projectName = name || 'import'
               if (existsSync(join(projectsDir, projectName))) {
                 let i = 1
                 while (existsSync(join(projectsDir, projectName + '_' + i))) i++
                 projectName = projectName + '_' + i
               }
-
               const destDir = join(projectsDir, projectName)
-              cpSync(sourceDir, destDir, { recursive: true })
-              rmSync(tmpDir, { recursive: true })
-
+              mkdirSync(destDir, { recursive: true })
+              for (const [path, data] of Object.entries(files) as [string, string][]) {
+                const filePath = join(destDir, path)
+                mkdirSync(join(filePath, '..'), { recursive: true })
+                writeFileSync(filePath, Buffer.from(data, 'base64'))
+              }
               res.setHeader('Content-Type', 'application/json')
               res.end(JSON.stringify({ ok: true, project: projectName }))
             } catch (e: any) {

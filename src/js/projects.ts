@@ -1,6 +1,6 @@
 import { initProjectData } from './data'
 import type { Instance, Actions, Labels } from './types'
-import { zipSync } from 'fflate'
+import { zipSync, unzipSync } from 'fflate'
 import { downloadFile } from './helpers'
 import { currentProject, setCurrentProject } from './project-name'
 
@@ -143,10 +143,52 @@ function importProjectZip(): void {
     if (!file) return
     try {
       const buf = await file.arrayBuffer()
+      const unzipped = unzipSync(new Uint8Array(buf))
+
+      let fileEntries: Record<string, Uint8Array> = {}
+      for (const [path, data] of Object.entries(unzipped)) {
+        if ((path as string).endsWith('/')) continue
+        fileEntries[path as string] = data as Uint8Array
+      }
+
+      let hasRoot = Object.keys(fileEntries).some(p => p.startsWith('config/') || p.startsWith('notes/'))
+      if (!hasRoot) {
+        const dirs = new Set(Object.keys(fileEntries).map(p => p.split('/')[0]))
+        for (const dir of dirs) {
+          const contents = Object.keys(fileEntries).filter(p => p.startsWith(dir + '/'))
+          if (contents.some(p => {
+            const rel = p.slice(dir.length + 1)
+            return rel.startsWith('config/') || rel.startsWith('notes/')
+          })) {
+            fileEntries = Object.fromEntries(
+              contents.map(p => [p.slice(dir.length + 1), fileEntries[p]])
+            )
+            hasRoot = true
+            break
+          }
+        }
+      }
+
+      if (!hasRoot) {
+        alert('В архиве нет папок config/ и notes/')
+        return
+      }
+
       const name = file.name.replace(/\.zip$/i, '')
-      const res = await fetch('./projects/import?name=' + encodeURIComponent(name), {
+      const base64Files: Record<string, string> = {}
+      for (const [path, data] of Object.entries(fileEntries)) {
+        let binary = ''
+        const bytes = data as Uint8Array
+        for (let i = 0; i < bytes.length; i++) {
+          binary += String.fromCharCode(bytes[i])
+        }
+        base64Files[path] = btoa(binary)
+      }
+
+      const res = await fetch('./projects/import', {
         method: 'POST',
-        body: buf,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, files: base64Files }),
       })
       const result = await res.json()
       if (!result.ok) {

@@ -100,12 +100,12 @@ function serveProjects(): Plugin {
           req.on('end', () => {
             try {
               const queryName = (rawUrl.split('?')[1] || '').split('=')[1] || 'import'
-              const tmpDir = join(projectsDir, '__import_tmp__')
-              if (existsSync(tmpDir)) rmSync(tmpDir, { recursive: true })
+              const tmpDir = join(projectsDir, '__import_tmp_' + Date.now() + '__')
               mkdirSync(tmpDir, { recursive: true })
 
               const unzipped = unzipSync(new Uint8Array(body))
               for (const [path, data] of Object.entries(unzipped) as [string, Uint8Array][]) {
+                if (path.endsWith('/')) continue
                 const filePath = join(tmpDir, path)
                 mkdirSync(join(filePath, '..'), { recursive: true })
                 writeFileSync(filePath, data)

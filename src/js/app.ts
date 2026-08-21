@@ -58,8 +58,9 @@ function toggleSection(key: string): void {
 }
 
 async function switchProjectAndRebuild(name: string): Promise<void> {
+  selectedInstances.clear();
   await doSwitchProject(name)
-  loadState()
+  loadState(name)
   if (!selectedInstances.size) {
     activeSections.clear()
     activeSections.add('actions')
@@ -172,7 +173,7 @@ async function init(): Promise<void> {
 
   await initProject()
 
-  loadState()
+  loadState('')
   if (!selectedInstances.size) {
     activeSections.clear()
     activeSections.add('actions')
